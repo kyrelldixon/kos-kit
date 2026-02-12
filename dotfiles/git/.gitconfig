@@ -1,0 +1,10 @@
+[user]
+	# Override in ~/.gitconfig.local
+[color]
+	ui = auto
+[init]
+	defaultBranch = main
+[include]
+	path = ~/.gitconfig.local
+[alias]
+	ignore = "!gi() { IFS=\",\"; curl -L -s \"https://www.gitignore.io/api/$*\" | tee .gitignore;}; gi"
