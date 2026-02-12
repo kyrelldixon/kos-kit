@@ -1,0 +1,24 @@
+{
+	"name": "tmx",
+	"version": "0.2.0",
+	"type": "module",
+	"bin": {
+		"tmx": "./src/cli.ts"
+	},
+	"scripts": {
+		"dev": "bun run src/cli.ts",
+		"test": "bun test",
+		"typecheck": "tsc --noEmit",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write --unsafe .",
+		"format": "biome format --write ."
+	},
+	"dependencies": {
+		"citty": "^0.1.6"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"@types/bun": "latest",
+		"typescript": "^5.9.3"
+	}
+}

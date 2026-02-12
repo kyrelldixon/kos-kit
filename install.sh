@@ -75,6 +75,19 @@ main() {
     warn "Skipping dotfiles"
   fi
 
+  # Link CLIs
+  step "CLIs"
+  if has bun; then
+    info "Installing workspace dependencies"
+    bun install --cwd "$KOS_DIR"
+    info "Linking CLIs to PATH"
+    bun link --cwd "$KOS_DIR/tools/linear"
+    bun link --cwd "$KOS_DIR/tools/tmx"
+    bun link --cwd "$KOS_DIR/cli"
+  else
+    warn "Bun not available, skipping CLI linking"
+  fi
+
   # Done
   echo ""
   info "Installation complete!"

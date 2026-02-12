@@ -1,0 +1,16 @@
+{
+  "name": "kos",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "kos": "./src/index.ts"
+  },
+  "dependencies": {
+    "citty": "^0.1.6"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/bun": "latest",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "kos-kit",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": ["tools/*", "cli"]
+}
