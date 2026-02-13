@@ -2,19 +2,21 @@
 
 Dev environment kit — tools, dotfiles, and CLI for agentic workflows.
 
-## Quick Start
+## Bootstrap
+
+One command to set up a fresh machine:
 
 ```bash
-git clone https://github.com/kyrelldixon/kos-kit.git ~/.kos-kit
-cd ~/.kos-kit
-bash install.sh
+curl -fsSL https://raw.githubusercontent.com/kyrelldixon/kos-kit/main/bootstrap.sh | bash
 ```
 
-Non-interactive (install all default categories):
+Non-interactive (install all defaults, no prompts):
 
 ```bash
-bash install.sh --yes
+curl -fsSL https://raw.githubusercontent.com/kyrelldixon/kos-kit/main/bootstrap.sh | bash -s -- --yes
 ```
+
+> Already have it cloned? Run `bash ~/.kos-kit/install.sh` to re-run the installer.
 
 ## What It Does
 
