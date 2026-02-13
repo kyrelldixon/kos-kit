@@ -37,6 +37,9 @@ main() {
   # Always install core tools first (critical)
   install_core
 
+  # Install gum before category selection (needed for interactive prompts)
+  install_tool "gum" recommended _install_gum
+
   # Category selection
   local categories
   if [[ "$AUTO_YES" == true ]]; then
