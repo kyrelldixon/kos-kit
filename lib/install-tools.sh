@@ -69,7 +69,7 @@ _install_ghostty_linux() {
 }
 
 # --- Category: Shell ---
-# starship, eza, bat, fd, ripgrep, fzf, zoxide, direnv, gum, atuin, git-delta, tldr, yq
+# starship, eza, bat, fd, ripgrep, fzf, zoxide, direnv, gum, atuin, git-delta, tlrc (tldr), yq
 
 install_shell_tools() {
   step "Shell tools"
@@ -86,7 +86,7 @@ install_shell_tools() {
   _install_shell_gum()       { _install_gum; }
   _install_shell_atuin()     { _install_via_curl_or_pkg atuin "atuin" "curl -sSf https://setup.atuin.sh | bash"; }
   _install_shell_delta()     { _install_with_names delta "git-delta" "git-delta"; }
-  _install_shell_tldr()      { pkg_install tldr; }
+  _install_shell_tldr()      { _install_with_names tldr "tlrc" "tldr"; }
   _install_shell_yq()        { pkg_install yq; }
 
   local tools=(starship eza bat fd rg fzf zoxide direnv gum atuin delta tldr yq)

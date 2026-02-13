@@ -20,7 +20,9 @@ stow_dotfiles() {
     _backup_conflicts "$pkg"
 
     info "Stowing $pkg"
-    stow -d "$DOTFILES_DIR" -t "$HOME" --no-folding "$pkg"
+    if ! stow -d "$DOTFILES_DIR" -t "$HOME" --no-folding "$pkg"; then
+      warn "Failed to stow $pkg, continuing..."
+    fi
   done
 }
 
@@ -35,8 +37,16 @@ _backup_conflicts() {
     local rel="${file#"$pkg_dir/"}"
     local target="$HOME/$rel"
 
-    # If target exists and is NOT a symlink (stow creates symlinks)
-    if [[ -f "$target" && ! -L "$target" ]]; then
+    if [[ -L "$target" ]]; then
+      # Symlink exists but not managed by stow — remove it
+      local link_target
+      link_target="$(readlink "$target")"
+      if [[ "$link_target" != *"$DOTFILES_DIR"* ]]; then
+        rm "$target"
+        warn "Removed old symlink $target → $link_target"
+      fi
+    elif [[ -f "$target" ]]; then
+      # Regular file — back it up
       local backup_path="$backup_dir/$rel"
       mkdir -p "$(dirname "$backup_path")"
       mv "$target" "$backup_path"
