@@ -44,16 +44,21 @@ main() {
     categories=("Terminal" "Shell" "Languages" "Dev tools")
   else
     step "Select categories to install"
-    # gum_choose returns one selection per line
-    categories=()
+    # gum_choose returns one selection per line — strip tool list after " — "
+    local selections=()
     while IFS= read -r line; do
-      [[ -n "$line" ]] && categories+=("$line")
+      [[ -n "$line" ]] && selections+=("$line")
     done < <(gum_choose "Which tool categories?" \
-      "Terminal" \
-      "Shell" \
-      "Languages" \
-      "Dev tools" \
-      "Infrastructure")
+      "Terminal — Ghostty" \
+      "Shell — starship, eza, bat, fd, ripgrep, fzf, zoxide, direnv, gum, atuin, git-delta, tldr, yq" \
+      "Languages — bun, fnm (node), go, rust, uv (python)" \
+      "Dev tools — gh, claude" \
+      "Infrastructure — tailscale, cloudflared, syncthing")
+
+    categories=()
+    for sel in "${selections[@]}"; do
+      categories+=("${sel%% — *}")
+    done
   fi
 
   # Install selected categories
