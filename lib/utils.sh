@@ -47,7 +47,7 @@ ensure_brew() {
 # Ensure apt is updated (Debian/Ubuntu only)
 ensure_apt() {
   [[ "$KOS_OS" != "debian" ]] && return
-  if [[ -z "$APT_UPDATED" ]]; then
+  if [[ -z "${APT_UPDATED:-}" ]]; then
     sudo apt-get update -qq
     sudo apt-get install -y curl unzip
     APT_UPDATED=1
