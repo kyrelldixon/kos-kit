@@ -49,7 +49,7 @@ ensure_apt() {
   [[ "$KOS_OS" != "debian" ]] && return
   if [[ -z "${APT_UPDATED:-}" ]]; then
     sudo apt-get update -qq
-    sudo apt-get install -y curl unzip
+    sudo apt-get install -y curl unzip gpg
     APT_UPDATED=1
   fi
 }
