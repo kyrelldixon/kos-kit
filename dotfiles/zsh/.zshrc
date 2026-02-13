@@ -79,6 +79,10 @@ alias ba='bun add'
 alias bad='bun add -D'
 alias bl='bun run lint'
 
+# --- Zsh config aliases ---
+alias zsho='${EDITOR:-vim} ~/.zshrc'
+alias zshr='source ~/.zshrc'
+
 # --- Shell aliases ---
 alias mv='mv -iv'
 alias cp='cp -riv'
