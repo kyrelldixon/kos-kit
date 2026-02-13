@@ -10,6 +10,7 @@ import {
 	parsePriority,
 	resolveCycle,
 	resolveLabels,
+	resolveProjectId,
 	resolveStateId,
 	resolveTeamId,
 } from "../lib/resolvers";
@@ -32,7 +33,7 @@ const create = defineCommand({
 		},
 		project: {
 			type: "string",
-			description: "Project ID to add issue to",
+			description: "Project name or ID",
 			alias: "p",
 		},
 		parent: {
@@ -95,6 +96,7 @@ const create = defineCommand({
 			description?: string;
 			projectId?: string;
 			parentId?: string;
+			stateId?: string;
 			cycleId?: string;
 			dueDate?: string;
 			priority?: number;
@@ -110,11 +112,15 @@ const create = defineCommand({
 		}
 
 		if (args.project) {
-			issuePayload.projectId = args.project;
+			issuePayload.projectId = await resolveProjectId(client, args.project);
 		}
 
 		if (args.parent) {
 			issuePayload.parentId = args.parent;
+		}
+
+		if (args.status) {
+			issuePayload.stateId = await resolveStateId(client, teamId, args.status);
 		}
 
 		if (args.cycle) {
@@ -183,7 +189,7 @@ const list = defineCommand({
 		},
 		project: {
 			type: "string",
-			description: "Filter by project ID",
+			description: "Filter by project name or ID",
 			alias: "p",
 		},
 		status: {
@@ -231,7 +237,8 @@ const list = defineCommand({
 		}
 
 		if (args.project) {
-			filter.project = { id: { eq: args.project } };
+			const projectId = await resolveProjectId(client, args.project);
+			filter.project = { id: { eq: projectId } };
 		}
 
 		if (args.status) {
@@ -436,7 +443,7 @@ const update = defineCommand({
 		},
 		project: {
 			type: "string",
-			description: "Move to project (ID)",
+			description: "Move to project (name or ID)",
 			alias: "p",
 		},
 		cycle: {
@@ -503,7 +510,7 @@ const update = defineCommand({
 		}
 
 		if (args.project) {
-			updatePayload.projectId = args.project;
+			updatePayload.projectId = await resolveProjectId(client, args.project);
 		}
 
 		if (args.cycle) {

@@ -171,6 +171,30 @@ export async function resolveLabels(
 }
 
 /**
+ * Resolve a project name or UUID to a project ID.
+ * Accepts project name (case-insensitive) or UUID.
+ */
+export async function resolveProjectId(
+	client: LinearClient,
+	projectInput: string,
+): Promise<string> {
+	if (projectInput.match(/^[0-9a-f-]{36}$/i)) {
+		return projectInput;
+	}
+	const projects = await client.projects();
+	const project = projects.nodes.find(
+		(p) => p.name.toLowerCase() === projectInput.toLowerCase(),
+	);
+	if (!project) {
+		const available = projects.nodes.map((p) => p.name).join(", ");
+		throw new Error(
+			`Project "${projectInput}" not found. Available: ${available}`,
+		);
+	}
+	return project.id;
+}
+
+/**
  * Resolve team key or UUID to team ID. Falls back to default team from config.
  */
 export async function resolveTeamId(
