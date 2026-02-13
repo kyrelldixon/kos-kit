@@ -69,6 +69,7 @@ gum_choose() {
     gum choose --no-limit --header "$header" "$@"
   else
     # Fallback: print numbered list, accept comma-separated input
+    # Read from /dev/tty so this works even when piped (curl | bash)
     echo "$header"
     local i=1
     for opt in "$@"; do
@@ -76,7 +77,7 @@ gum_choose() {
       ((i++))
     done
     echo -n "Enter numbers (comma-separated, or 'all'): "
-    read -r selection
+    read -r selection < /dev/tty
     if [[ "$selection" == "all" ]]; then
       printf '%s\n' "$@"
     else
@@ -97,7 +98,7 @@ gum_confirm() {
     gum confirm "$prompt"
   else
     echo -n "$prompt [y/N] "
-    read -r answer
+    read -r answer < /dev/tty
     [[ "$answer" =~ ^[Yy] ]]
   fi
 }
