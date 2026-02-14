@@ -101,6 +101,9 @@ main() {
   info "Installation complete!"
   echo ""
   echo "  Next steps:"
+  if [[ "$(basename "$SHELL")" != "zsh" ]]; then
+    echo "    exec zsh      — switch to zsh (your new default shell)"
+  fi
   echo "    kos doctor    — verify everything is working"
   echo "    kos setup     — configure name/email/github"
   echo "    kos auth      — authenticate gh, linear, claude"

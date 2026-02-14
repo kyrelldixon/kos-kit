@@ -38,6 +38,14 @@ install_core() {
   for tool in git zsh tmux stow curl jq; do
     install_tool "$tool" critical _install_core_pkg
   done
+
+  # Set zsh as default shell if it isn't already
+  local zsh_path
+  zsh_path="$(which zsh)"
+  if [[ "$(basename "$SHELL")" != "zsh" ]] && [[ -n "$zsh_path" ]]; then
+    info "Setting zsh as default shell"
+    sudo chsh -s "$zsh_path" "$(whoami)" 2>/dev/null || warn "Could not set zsh as default shell — run: chsh -s $zsh_path"
+  fi
 }
 
 _install_core_pkg() {
