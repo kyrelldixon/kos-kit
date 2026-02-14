@@ -197,6 +197,13 @@ install_dev_tools() {
 
   install_tool "gh" recommended _install_gh
   install_tool "claude" recommended _install_claude
+  if [[ "$KOS_OS" == "macos" ]]; then
+    install_tool "orb" recommended _install_orbstack
+  fi
+}
+
+_install_orbstack() {
+  brew install orbstack
 }
 
 _install_gh() {

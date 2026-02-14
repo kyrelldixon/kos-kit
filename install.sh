@@ -55,7 +55,7 @@ main() {
       "Terminal — Ghostty" \
       "Shell — starship, eza, bat, fd, ripgrep, fzf, zoxide, direnv, gum, atuin, git-delta, tldr, yq" \
       "Languages — bun, fnm (node), go, rust, uv (python)" \
-      "Dev tools — gh, claude" \
+      "Dev tools — gh, claude, orbstack (macOS)" \
       "Infrastructure — tailscale, cloudflared, syncthing")
 
     categories=()

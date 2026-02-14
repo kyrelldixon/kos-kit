@@ -33,7 +33,7 @@ The installer walks you through 6 tool categories. You choose which ones to inst
 | **Terminal** | Ghostty | On |
 | **Shell** | starship, eza, bat, fd, ripgrep, fzf, zoxide, direnv, gum, atuin, git-delta, tldr, yq | On |
 | **Languages** | bun, fnm (node), go, rust, uv (python) | On |
-| **Dev tools** | gh, claude | On |
+| **Dev tools** | gh, claude, orbstack (macOS) | On |
 | **Infrastructure** | tailscale, cloudflared, syncthing | Off |
 
 Core tools are always installed first (they're required). Infrastructure is opt-in.
