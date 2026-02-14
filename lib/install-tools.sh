@@ -24,7 +24,7 @@ install_tool() {
       die "Failed to install $name (critical tool)"
     else
       error "Failed to install $name (skipping)"
-      return 1
+      return 0
     fi
   fi
 }
