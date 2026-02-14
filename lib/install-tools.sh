@@ -83,7 +83,7 @@ install_shell_tools() {
   step "Shell tools"
 
   # Map tool names to their brew/apt package names where different
-  _install_shell_starship()  { _install_via_curl_or_pkg starship "starship" "curl -sS https://starship.rs/install.sh | sh -s -- -y"; }
+  _install_shell_starship()  { mkdir -p "$HOME/.local/bin" && _install_via_curl_or_pkg starship "starship" "curl -sS https://starship.rs/install.sh | sh -s -- -y -b \$HOME/.local/bin"; }
   _install_shell_eza()       { pkg_install eza; }
   _install_shell_bat()       { pkg_install bat; }
   _install_shell_fd()        { _install_with_names fd "fd" "fd-find"; }

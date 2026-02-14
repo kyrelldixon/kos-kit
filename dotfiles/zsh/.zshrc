@@ -1,6 +1,12 @@
 # kos-kit managed zshrc
 # Load order: local_before → PATH → tool init → aliases → local_after
 
+# --- Terminal compatibility ---
+# Fall back if TERM isn't recognized (e.g. xterm-ghostty on remote machines)
+if ! infocmp "$TERM" &>/dev/null 2>&1; then
+  export TERM=xterm-256color
+fi
+
 # --- Pre-overrides ---
 [[ -f ~/.zshrc_local_before ]] && source ~/.zshrc_local_before
 
@@ -20,6 +26,7 @@ export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
 export PATH="$HOME/go/bin:$PATH"
+[[ -d "$HOME/.local/share/fnm" ]] && export PATH="$HOME/.local/share/fnm:$PATH"
 
 # --- Tool init (all guarded) ---
 command -v fnm    &>/dev/null && eval "$(fnm env --use-on-cd)"
