@@ -102,7 +102,7 @@ main() {
   echo ""
   echo "  Next steps:"
   if [[ "$(basename "$SHELL")" != "zsh" ]]; then
-    echo "    exec zsh      — switch to zsh (your new default shell)"
+    echo "    Open a new terminal to use zsh (now your default shell)"
   fi
   echo "    kos doctor    — verify everything is working"
   echo "    kos setup     — configure name/email/github"
