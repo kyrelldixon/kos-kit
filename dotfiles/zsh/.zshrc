@@ -26,6 +26,7 @@ export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
 export PATH="$HOME/go/bin:$PATH"
+[[ -d /usr/local/go/bin ]] && export PATH="/usr/local/go/bin:$PATH"
 [[ -d "$HOME/.local/share/fnm" ]] && export PATH="$HOME/.local/share/fnm:$PATH"
 
 # --- Tool init (all guarded) ---
@@ -34,7 +35,7 @@ command -v starship &>/dev/null && eval "$(starship init zsh)"
 command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"
 command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
 command -v atuin  &>/dev/null && eval "$(atuin init zsh)"
-command -v fzf    &>/dev/null && source <(fzf --zsh) 2>/dev/null
+command -v fzf    &>/dev/null && eval "$(fzf --zsh 2>/dev/null)" 2>/dev/null
 
 # Bun completions
 [[ -s "$BUN_INSTALL/_bun" ]] && source "$BUN_INSTALL/_bun"
