@@ -59,13 +59,13 @@ main() {
       "Infrastructure — tailscale, cloudflared, syncthing")
 
     categories=()
-    for sel in "${selections[@]}"; do
+    for sel in "${selections[@]+"${selections[@]}"}"; do
       categories+=("${sel%% — *}")
     done
   fi
 
   # Install selected categories
-  for cat in "${categories[@]}"; do
+  for cat in "${categories[@]+"${categories[@]}"}"; do
     case "$cat" in
       Terminal)       install_terminal ;;
       Shell)          install_shell_tools ;;
@@ -75,6 +75,11 @@ main() {
     esac
   done
 
+  # Capture git identity BEFORE stow replaces ~/.gitconfig
+  local _git_name _git_email
+  _git_name="$(git config --global user.name 2>/dev/null || true)"
+  _git_email="$(git config --global user.email 2>/dev/null || true)"
+
   # Dotfiles
   step "Dotfiles"
   if [[ "$AUTO_YES" == true ]] || gum_confirm "Stow dotfiles?"; then
@@ -83,15 +88,18 @@ main() {
     warn "Skipping dotfiles"
   fi
 
+  # Git identity — write ~/.gitconfig.local
+  setup_git_identity "$_git_name" "$_git_email"
+
   # Link CLIs
   step "CLIs"
   if has bun; then
     info "Installing workspace dependencies"
-    bun install --cwd "$KOS_DIR"
+    bun install --silent --cwd "$KOS_DIR"
     info "Linking CLIs to PATH"
-    bun link --cwd "$KOS_DIR/tools/linear"
-    bun link --cwd "$KOS_DIR/tools/tmx"
-    bun link --cwd "$KOS_DIR/cli"
+    bun link --silent --cwd "$KOS_DIR/tools/linear"
+    bun link --silent --cwd "$KOS_DIR/tools/tmx"
+    bun link --silent --cwd "$KOS_DIR/cli"
   else
     warn "Bun not available, skipping CLI linking"
   fi

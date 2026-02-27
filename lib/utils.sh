@@ -114,3 +114,22 @@ gum_spin() {
     "$@"
   fi
 }
+
+# Text input with gum (or fallback)
+# Usage: gum_input "prompt label" "default value"
+# Prints the entered value to stdout
+gum_input() {
+  local label="$1"
+  local default="${2:-}"
+
+  if has_gum; then
+    gum input --prompt "$label: " --value "$default"
+  else
+    local suffix=""
+    [[ -n "$default" ]] && suffix=" [$default]"
+    echo -n "$label$suffix: " >&2
+    local answer
+    read -r answer < /dev/tty
+    echo "${answer:-$default}"
+  fi
+}

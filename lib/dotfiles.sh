@@ -55,6 +55,49 @@ _backup_conflicts() {
   done < <(find "$pkg_dir" -type f -print0)
 }
 
+# Prompt for git name/email and write ~/.gitconfig.local
+# Receives pre-stow defaults as arguments
+setup_git_identity() {
+  local default_name="${1:-}"
+  local default_email="${2:-}"
+
+  # Skip if .gitconfig.local already has identity
+  local existing_name existing_email
+  existing_name="$(git config --file "$HOME/.gitconfig.local" user.name 2>/dev/null || true)"
+  existing_email="$(git config --file "$HOME/.gitconfig.local" user.email 2>/dev/null || true)"
+
+  if [[ -n "$existing_name" && -n "$existing_email" ]]; then
+    info "Git identity already configured ($existing_name <$existing_email>)"
+    return 0
+  fi
+
+  step "Git identity"
+
+  local name email
+
+  if [[ "$AUTO_YES" == true ]]; then
+    if [[ -z "$default_name" || -z "$default_email" ]]; then
+      warn "Git identity not configured — run: kos setup"
+      return 0
+    fi
+    name="$default_name"
+    email="$default_email"
+    info "Using existing git identity: $name <$email>"
+  else
+    name="$(gum_input "Name" "$default_name")"
+    email="$(gum_input "Email" "$default_email")"
+
+    if [[ -z "$name" || -z "$email" ]]; then
+      warn "Skipping git identity — run: kos setup"
+      return 0
+    fi
+  fi
+
+  # Write ~/.gitconfig.local — same format as kos setup (setup.ts:30)
+  printf '[user]\n\tname = %s\n\temail = %s\n' "$name" "$email" > "$HOME/.gitconfig.local"
+  info "Wrote ~/.gitconfig.local"
+}
+
 # Unstow all packages (for removal)
 unstow_dotfiles() {
   local packages=(zsh git starship tmux ssh vim)
