@@ -104,11 +104,7 @@ _tool_is_installed() {
       fi
       ;;
     tailscale)
-      if [[ "$KOS_OS" == "macos" ]]; then
-        [[ -d "/Applications/Tailscale.app" ]] || has tailscale
-      else
-        has tailscale
-      fi
+      has tailscale
       ;;
     *) has "$cmd" ;;
   esac
@@ -268,15 +264,7 @@ _install_orbstack() {
 
 _install_tailscale() {
   case "$KOS_OS" in
-    macos)
-      if [[ -d "/Applications/Tailscale.app" ]]; then
-        info "Tailscale app installed"
-        warn "Enable CLI: Tailscale menu > Settings > Enable CLI"
-        return 0
-      fi
-      warn "Download Tailscale: https://tailscale.com/download/mac"
-      return 1
-      ;;
+    macos) brew install --formula tailscale ;;
     *) curl -fsSL https://tailscale.com/install.sh | sh ;;
   esac
 }
