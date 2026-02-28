@@ -76,6 +76,7 @@ TOOLS_MANIFEST=(
   # Dev tools
   "gh:gh:Dev tools:recommended:_install_gh"
   "claude:claude:Dev tools:recommended:_install_claude"
+  "agent-browser:agent-browser:Dev tools:recommended:_install_agent_browser"
 
   # Apps (GUI — skipped in --yes mode)
   "ghostty:Ghostty:Apps:recommended:_install_ghostty"
@@ -242,6 +243,24 @@ _install_claude() {
     warn "Need bun or npm to install Claude Code"
     return 1
   fi
+}
+
+_install_agent_browser() {
+  case "$KOS_OS" in
+    macos) brew install agent-browser ;;
+    *)
+      if has npm; then
+        npm install -g agent-browser
+      elif has bun; then
+        bun install -g agent-browser
+      else
+        warn "Need brew, npm, or bun to install agent-browser"
+        return 1
+      fi
+      ;;
+  esac
+  # Install browser binaries (Chromium) — required after CLI install
+  agent-browser install --with-deps
 }
 
 # --- App installers ---
