@@ -45,6 +45,7 @@ export const tools: Tool[] = [
 	// Apps (GUI)
 	{ id: "ghostty", name: "Ghostty", check: "ghostty", category: "apps", critical: false },
 	{ id: "orb", name: "OrbStack", check: "orb", category: "apps", critical: false },
+	{ id: "obsidian", name: "Obsidian", check: "obsidian", category: "apps", critical: false },
 
 	// Infrastructure
 	{ id: "tailscale", name: "Tailscale", check: "tailscale", category: "infrastructure", critical: false },

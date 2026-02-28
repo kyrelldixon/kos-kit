@@ -82,6 +82,7 @@ TOOLS_MANIFEST=(
   # Apps (GUI — skipped in --yes mode)
   "ghostty:Ghostty:Apps:recommended:_install_ghostty"
   "orb:OrbStack:Apps:recommended:_install_orbstack:macos"
+  "obsidian:Obsidian:Apps:recommended:_install_obsidian"
 
   # Infrastructure (off by default in --yes mode)
   "tailscale:tailscale:Infrastructure:recommended:_install_tailscale"
@@ -103,6 +104,13 @@ _tool_is_installed() {
         [[ -d "/Applications/Ghostty.app" ]]
       else
         has ghostty
+      fi
+      ;;
+    obsidian)
+      if [[ "$KOS_OS" == "macos" ]]; then
+        [[ -d "/Applications/Obsidian.app" ]]
+      else
+        has obsidian
       fi
       ;;
     tailscale)
@@ -278,6 +286,16 @@ _install_ghostty() {
     warn "Ghostty on Linux: see https://ghostty.org/docs/install/binary"
     return 1
   fi
+}
+
+_install_obsidian() {
+  case "$KOS_OS" in
+    macos) brew install --cask obsidian ;;
+    *)
+      warn "Obsidian on Linux: download from https://obsidian.md/download"
+      return 1
+      ;;
+  esac
 }
 
 _install_orbstack() {
