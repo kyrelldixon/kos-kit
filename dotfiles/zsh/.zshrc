@@ -127,8 +127,6 @@ kos() {
   local rc=$?
   if [[ "$1" == "update" && $rc -eq 0 ]]; then
     source ~/.zshrc
-    echo ""
-    echo "kos-kit updated."
   fi
   return $rc
 }
