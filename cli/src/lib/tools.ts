@@ -2,7 +2,7 @@ export interface Tool {
 	id: string;
 	name: string;
 	check: string; // command to check if installed
-	category: "core" | "terminal" | "shell" | "languages" | "dev-tools" | "infrastructure";
+	category: "core" | "shell" | "languages" | "dev-tools" | "apps" | "infrastructure";
 	critical: boolean;
 }
 
@@ -14,9 +14,6 @@ export const tools: Tool[] = [
 	{ id: "stow", name: "GNU Stow", check: "stow", category: "core", critical: true },
 	{ id: "curl", name: "curl", check: "curl", category: "core", critical: true },
 	{ id: "jq", name: "jq", check: "jq", category: "core", critical: true },
-
-	// Terminal
-	{ id: "ghostty", name: "Ghostty", check: "ghostty", category: "terminal", critical: false },
 
 	// Shell
 	{ id: "starship", name: "Starship", check: "starship", category: "shell", critical: false },
@@ -43,7 +40,9 @@ export const tools: Tool[] = [
 	// Dev tools
 	{ id: "gh", name: "GitHub CLI", check: "gh", category: "dev-tools", critical: false },
 	{ id: "claude", name: "Claude Code", check: "claude", category: "dev-tools", critical: false },
-	{ id: "orb", name: "OrbStack", check: "orb", category: "dev-tools", critical: false },
+	// Apps (GUI)
+	{ id: "ghostty", name: "Ghostty", check: "ghostty", category: "apps", critical: false },
+	{ id: "orb", name: "OrbStack", check: "orb", category: "apps", critical: false },
 
 	// Infrastructure
 	{ id: "tailscale", name: "Tailscale", check: "tailscale", category: "infrastructure", critical: false },
@@ -53,10 +52,10 @@ export const tools: Tool[] = [
 
 export const categories = [
 	"core",
-	"terminal",
 	"shell",
 	"languages",
 	"dev-tools",
+	"apps",
 	"infrastructure",
 ] as const;
 

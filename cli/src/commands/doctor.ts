@@ -26,7 +26,7 @@ export const doctorCommand = defineCommand({
 		if (allGood) {
 			console.log("  All tools installed!");
 		} else {
-			console.log("  Run install.sh to install missing tools.");
+			console.log("  Run: kos install");
 		}
 	},
 });
