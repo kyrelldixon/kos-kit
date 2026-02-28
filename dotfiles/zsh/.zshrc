@@ -128,11 +128,7 @@ kos() {
   if [[ "$1" == "update" && $rc -eq 0 ]]; then
     source ~/.zshrc
     echo ""
-    if command -v cowsay &>/dev/null; then
-      echo "kos-kit updated!" | cowsay
-    else
-      echo "kos-kit updated."
-    fi
+    echo "kos-kit updated."
   fi
   return $rc
 }

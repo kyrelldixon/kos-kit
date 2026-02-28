@@ -50,7 +50,6 @@ export const tools: Tool[] = [
 	{ id: "syncthing", name: "Syncthing", check: "syncthing", category: "infrastructure", critical: false },
 
 	// Fun
-	{ id: "cowsay", name: "cowsay", check: "cowsay", category: "fun", critical: false },
 	{ id: "figlet", name: "figlet", check: "figlet", category: "fun", critical: false },
 	{ id: "lolcat", name: "lolcat", check: "lolcat", category: "fun", critical: false },
 	{ id: "toilet", name: "toilet", check: "toilet", category: "fun", critical: false },

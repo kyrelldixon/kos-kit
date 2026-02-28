@@ -87,7 +87,6 @@ TOOLS_MANIFEST=(
   "syncthing:syncthing:Infrastructure:recommended:_install_syncthing"
 
   # Fun
-  "cowsay:cowsay:Fun:recommended:_install_cowsay"
   "figlet:figlet:Fun:recommended:_install_figlet"
   "lolcat:lolcat:Fun:recommended:_install_lolcat:macos"
   "toilet:toilet:Fun:recommended:_install_toilet"
@@ -300,7 +299,6 @@ _install_syncthing() {
 
 # --- Fun installers ---
 
-_install_cowsay() { pkg_install cowsay; }
 _install_figlet() { pkg_install figlet; }
 _install_lolcat() { pkg_install lolcat; }
 _install_toilet()  { _install_with_names toilet "toilet" "toilet"; }

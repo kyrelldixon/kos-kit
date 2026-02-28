@@ -120,11 +120,7 @@ main() {
 
   # Done
   echo ""
-  if has cowsay; then
-    echo "Installation complete!" | cowsay
-  else
-    info "Installation complete!"
-  fi
+  info "Installation complete!"
   echo ""
   echo "  Next steps:"
   if [[ "$(basename "$SHELL")" != "zsh" ]]; then
