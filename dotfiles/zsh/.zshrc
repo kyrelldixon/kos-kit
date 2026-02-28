@@ -104,7 +104,7 @@ alias zshr='source ~/.zshrc'
 alias mv='mv -iv'
 alias cp='cp -riv'
 alias mkdir='mkdir -vp'
-alias cpwd='pwd | pbcopy'
+alias pwdc='pwd | pbcopy'
 
 # ls: eza → lsd → ls fallback
 if command -v eza &>/dev/null; then
