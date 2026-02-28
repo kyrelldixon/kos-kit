@@ -3,6 +3,7 @@ import { defineCommand, runMain } from "citty";
 import { authCommand } from "./commands/auth";
 import { cheatsheetCommand } from "./commands/cheatsheet";
 import { doctorCommand } from "./commands/doctor";
+import { installCommand } from "./commands/install";
 import { onboardCommand } from "./commands/onboard";
 import { setupCommand } from "./commands/setup";
 import { statusCommand } from "./commands/status";
@@ -16,6 +17,7 @@ const main = defineCommand({
 	},
 	subCommands: {
 		doctor: doctorCommand,
+		install: installCommand,
 		setup: setupCommand,
 		auth: authCommand,
 		onboard: onboardCommand,
