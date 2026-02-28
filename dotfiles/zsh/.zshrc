@@ -30,7 +30,7 @@ export PATH="$HOME/go/bin:$PATH"
 [[ -d "$HOME/.local/share/fnm" ]] && export PATH="$HOME/.local/share/fnm:$PATH"
 
 # --- Tool init (all guarded) ---
-command -v fnm    &>/dev/null && eval "$(fnm env --use-on-cd)"
+command -v fnm    &>/dev/null && eval "$(fnm env --use-on-cd --shell zsh)"
 command -v starship &>/dev/null && eval "$(starship init zsh)"
 command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"
 command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
@@ -120,6 +120,22 @@ else
   alias ll='ls -lah'
   alias la='ls -A'
 fi
+
+# --- kos wrapper (auto-source after update) ---
+kos() {
+  command kos "$@"
+  local rc=$?
+  if [[ "$1" == "update" && $rc -eq 0 ]]; then
+    source ~/.zshrc
+    echo ""
+    if command -v cowsay &>/dev/null; then
+      echo "kos-kit updated!" | cowsay
+    else
+      echo "kos-kit updated."
+    fi
+  fi
+  return $rc
+}
 
 # --- Post-overrides ---
 [[ -f ~/.zshrc_local_after ]] && source ~/.zshrc_local_after

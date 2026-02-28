@@ -73,7 +73,7 @@ main() {
   fi
 
   # Install selected tools, grouped by category for step headers
-  for cat in "Shell" "Languages" "Dev tools" "Apps" "Infrastructure"; do
+  for cat in "Shell" "Languages" "Dev tools" "Apps" "Infrastructure" "Fun"; do
     local -a cat_cmds=()
     for record in "${TOOLS_MANIFEST[@]}"; do
       IFS=: read -r m_cmd m_display m_cat m_class m_fn m_os <<< "$record"
@@ -120,7 +120,11 @@ main() {
 
   # Done
   echo ""
-  info "Installation complete!"
+  if has cowsay; then
+    echo "Installation complete!" | cowsay
+  else
+    info "Installation complete!"
+  fi
   echo ""
   echo "  Next steps:"
   if [[ "$(basename "$SHELL")" != "zsh" ]]; then
