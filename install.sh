@@ -37,42 +37,56 @@ main() {
   # Always install core tools first (critical)
   install_core
 
-  # Install gum before category selection (needed for interactive prompts)
+  # Install gum before tool selection (needed for interactive prompts)
   install_tool "gum" recommended _install_gum
 
-  # Category selection
-  local categories
-  if [[ "$AUTO_YES" == true ]]; then
-    # Non-interactive: install all default-on categories
-    categories=("Terminal" "Shell" "Languages" "Dev tools")
-  else
-    step "Select categories to install"
-    # gum_choose returns one selection per line — strip tool list after " — "
-    local selections=()
-    while IFS= read -r line; do
-      [[ -n "$line" ]] && selections+=("$line")
-    done < <(gum_choose "Which tool categories?" \
-      "Terminal — Ghostty" \
-      "Shell — starship, eza, bat, fd, ripgrep, fzf, zoxide, direnv, gum, atuin, git-delta, tldr, yq" \
-      "Languages — bun, fnm (node), go, rust, uv (python)" \
-      "Dev tools — gh, claude, orbstack (macOS)" \
-      "Infrastructure — tailscale, cloudflared, syncthing")
+  # Always install bun (critical for kos CLI)
+  step "Languages"
+  install_tool "bun" critical _install_bun
 
-    categories=()
-    for sel in "${selections[@]+"${selections[@]}"}"; do
-      categories+=("${sel%% — *}")
-    done
+  # Build tool selection list from manifest
+  local -a picker_items=() auto_selected=()
+  for record in "${TOOLS_MANIFEST[@]}"; do
+    IFS=: read -r m_cmd m_display m_cat m_class m_fn m_os <<< "$record"
+    [[ -n "$m_os" && "$m_os" != "$KOS_OS" ]] && continue
+
+    local inst=0
+    _tool_is_installed "$m_cmd" && inst=1
+
+    picker_items+=("${m_display}|${m_cmd}|${inst}|${m_cat}")
+
+    # --yes mode: select uninstalled tools, skip Apps and Infrastructure
+    if [[ "$m_cat" != "Infrastructure" && "$m_cat" != "Apps" && "$inst" == "0" ]]; then
+      auto_selected+=("$m_cmd")
+    fi
+  done
+
+  local -a selected_cmds=()
+  if [[ "$AUTO_YES" == true ]]; then
+    selected_cmds=("${auto_selected[@]+"${auto_selected[@]}"}")
+  else
+    step "Select tools to install"
+    while IFS= read -r cmd; do
+      [[ -n "$cmd" ]] && selected_cmds+=("$cmd")
+    done < <(gum_choose_tools "Space = select · Enter = confirm · [installed] = already present" \
+      "${picker_items[@]+"${picker_items[@]}"}")
   fi
 
-  # Install selected categories
-  for cat in "${categories[@]+"${categories[@]}"}"; do
-    case "$cat" in
-      Terminal)       install_terminal ;;
-      Shell)          install_shell_tools ;;
-      Languages)      install_languages ;;
-      "Dev tools")    install_dev_tools ;;
-      Infrastructure) install_infrastructure ;;
-    esac
+  # Install selected tools, grouped by category for step headers
+  for cat in "Shell" "Languages" "Dev tools" "Apps" "Infrastructure"; do
+    local -a cat_cmds=()
+    for record in "${TOOLS_MANIFEST[@]}"; do
+      IFS=: read -r m_cmd m_display m_cat m_class m_fn m_os <<< "$record"
+      [[ "$m_cat" != "$cat" ]] && continue
+      for sel in "${selected_cmds[@]+"${selected_cmds[@]}"}"; do
+        [[ "$sel" == "$m_cmd" ]] && cat_cmds+=("$m_cmd") && break
+      done
+    done
+
+    if [[ "${#cat_cmds[@]}" -gt 0 ]]; then
+      step "$cat"
+      install_selected_tools "${cat_cmds[@]}"
+    fi
   done
 
   # Capture git identity BEFORE stow replaces ~/.gitconfig

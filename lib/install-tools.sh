@@ -1,5 +1,5 @@
 #!/bin/bash
-# Tool installers — one function per category
+# Tool installers and manifest
 # Each tool is tagged: critical (abort on fail) or recommended (warn and continue)
 
 # --- Helpers ---
@@ -29,8 +29,101 @@ install_tool() {
   fi
 }
 
-# --- Category: Core ---
-# git, zsh, tmux, stow, curl, jq — always installed, critical
+_install_with_names() {
+  local cmd="$1" mac_pkg="$2" deb_pkg="$3"
+  case "$KOS_OS" in
+    macos)  brew install "$mac_pkg" ;;
+    debian) sudo apt-get install -y "$deb_pkg" ;;
+    redhat) sudo dnf install -y "$deb_pkg" ;;
+  esac
+}
+
+_install_via_curl_or_pkg() {
+  local mac_pkg="$2" curl_cmd="$3"
+  case "$KOS_OS" in
+    macos) brew install "$mac_pkg" ;;
+    *)     eval "$curl_cmd" ;;
+  esac
+}
+
+# --- Tool Manifest ---
+# Format: cmd:display:category:classification:install_fn[:os_filter]
+# - critical tools (bun) are installed unconditionally before the picker
+# - os_filter: "macos" = only shown/installed on macOS
+# No field may contain colons.
+TOOLS_MANIFEST=(
+  # Shell
+  "starship:starship:Shell:recommended:_install_starship"
+  "eza:eza:Shell:recommended:_install_eza"
+  "bat:bat:Shell:recommended:_install_bat"
+  "fd:fd:Shell:recommended:_install_fd"
+  "rg:ripgrep:Shell:recommended:_install_rg"
+  "fzf:fzf:Shell:recommended:_install_fzf"
+  "zoxide:zoxide:Shell:recommended:_install_zoxide"
+  "direnv:direnv:Shell:recommended:_install_direnv"
+  "gum:gum:Shell:recommended:_install_gum"
+  "atuin:atuin:Shell:recommended:_install_atuin"
+  "delta:git-delta:Shell:recommended:_install_delta"
+  "tldr:tldr:Shell:recommended:_install_tldr"
+  "yq:yq:Shell:recommended:_install_yq"
+
+  # Languages (bun is critical — installed separately, not in picker)
+  "fnm:fnm (node):Languages:recommended:_install_fnm"
+  "go:go:Languages:recommended:_install_go"
+  "rustup:rust:Languages:recommended:_install_rust"
+  "uv:uv (python):Languages:recommended:_install_uv"
+
+  # Dev tools
+  "gh:gh:Dev tools:recommended:_install_gh"
+  "claude:claude:Dev tools:recommended:_install_claude"
+
+  # Apps (GUI — skipped in --yes mode)
+  "ghostty:Ghostty:Apps:recommended:_install_ghostty"
+  "orb:OrbStack:Apps:recommended:_install_orbstack:macos"
+
+  # Infrastructure (off by default in --yes mode)
+  "tailscale:tailscale:Infrastructure:recommended:_install_tailscale"
+  "cloudflared:cloudflared:Infrastructure:recommended:_install_cloudflared"
+  "syncthing:syncthing:Infrastructure:recommended:_install_syncthing"
+)
+
+# Check if a tool is already installed (custom checks for some tools)
+_tool_is_installed() {
+  local cmd="$1"
+  case "$cmd" in
+    ghostty)
+      if [[ "$KOS_OS" == "macos" ]]; then
+        [[ -d "/Applications/Ghostty.app" ]]
+      else
+        has ghostty
+      fi
+      ;;
+    tailscale)
+      if [[ "$KOS_OS" == "macos" ]]; then
+        [[ -d "/Applications/Tailscale.app" ]] || has tailscale
+      else
+        has tailscale
+      fi
+      ;;
+    *) has "$cmd" ;;
+  esac
+}
+
+# Install tools by command name, looking up each in the manifest
+install_selected_tools() {
+  for cmd in "$@"; do
+    for record in "${TOOLS_MANIFEST[@]}"; do
+      IFS=: read -r m_cmd m_display m_cat m_class m_fn m_os <<< "$record"
+      if [[ "$m_cmd" == "$cmd" ]]; then
+        [[ -n "$m_os" && "$m_os" != "$KOS_OS" ]] && break
+        install_tool "$m_cmd" "$m_class" "$m_fn"
+        break
+      fi
+    done
+  done
+}
+
+# --- Core (always installed, critical) ---
 
 install_core() {
   step "Core tools"
@@ -49,82 +142,29 @@ install_core() {
 }
 
 _install_core_pkg() {
-  # Uses the last $tool from the calling loop (bash dynamic scope)
+  # Uses $tool from the calling loop (bash dynamic scope)
   pkg_install "$tool"
 }
 
-# --- Category: Terminal ---
-# Ghostty — recommended
+# --- Shell tool installers ---
 
-install_terminal() {
-  step "Terminal"
-
-  if [[ "$KOS_OS" == "macos" ]]; then
-    if [[ -d "/Applications/Ghostty.app" ]]; then
-      info "Ghostty already installed"
-    else
-      warn "Ghostty: Download from https://ghostty.org/download"
-    fi
-  else
-    install_tool "ghostty" recommended _install_ghostty_linux
-  fi
-}
-
-_install_ghostty_linux() {
-  # Ghostty doesn't have a simple apt package yet — point to docs
-  warn "Ghostty on Linux: see https://ghostty.org/docs/install/binary"
-  return 1
-}
-
-# --- Category: Shell ---
-# starship, eza, bat, fd, ripgrep, fzf, zoxide, direnv, gum, atuin, git-delta, tlrc (tldr), yq
-
-install_shell_tools() {
-  step "Shell tools"
-
-  # Map tool names to their brew/apt package names where different
-  _install_shell_starship()  { mkdir -p "$HOME/.local/bin" && _install_via_curl_or_pkg starship "starship" "curl -sS https://starship.rs/install.sh | sh -s -- -y -b \$HOME/.local/bin"; }
-  _install_shell_eza()       { pkg_install eza; }
-  _install_shell_bat()       { pkg_install bat; }
-  _install_shell_fd()        { _install_with_names fd "fd" "fd-find"; }
-  _install_shell_rg()        { _install_with_names rg "ripgrep" "ripgrep"; }
-  _install_shell_fzf()       { pkg_install fzf; }
-  _install_shell_zoxide()    { pkg_install zoxide; }
-  _install_shell_direnv()    { pkg_install direnv; }
-  _install_shell_gum()       { _install_gum; }
-  _install_shell_atuin()     { _install_via_curl_or_pkg atuin "atuin" "curl -sSf https://setup.atuin.sh | bash"; }
-  _install_shell_delta()     { _install_with_names delta "git-delta" "git-delta"; }
-  _install_shell_tldr()      { _install_with_names tldr "tlrc" "tldr"; }
-  _install_shell_yq()        { pkg_install yq; }
-
-  local tools=(starship eza bat fd rg fzf zoxide direnv gum atuin delta tldr yq)
-  for t in "${tools[@]}"; do
-    install_tool "$t" recommended "_install_shell_$t"
-  done
-}
-
-_install_with_names() {
-  local cmd="$1" mac_pkg="$2" deb_pkg="$3"
-  case "$KOS_OS" in
-    macos)  brew install "$mac_pkg" ;;
-    debian) sudo apt-get install -y "$deb_pkg" ;;
-    redhat) sudo dnf install -y "$deb_pkg" ;;
-  esac
-}
-
-_install_via_curl_or_pkg() {
-  local mac_pkg="$2" curl_cmd="$3"
-  case "$KOS_OS" in
-    macos) brew install "$mac_pkg" ;;
-    *)     eval "$curl_cmd" ;;
-  esac
-}
+_install_starship() { mkdir -p "$HOME/.local/bin" && _install_via_curl_or_pkg starship "starship" "curl -sS https://starship.rs/install.sh | sh -s -- -y -b \$HOME/.local/bin"; }
+_install_eza()      { pkg_install eza; }
+_install_bat()      { pkg_install bat; }
+_install_fd()       { _install_with_names fd "fd" "fd-find"; }
+_install_rg()       { _install_with_names rg "ripgrep" "ripgrep"; }
+_install_fzf()      { pkg_install fzf; }
+_install_zoxide()   { pkg_install zoxide; }
+_install_direnv()   { pkg_install direnv; }
+_install_atuin()    { _install_via_curl_or_pkg atuin "atuin" "curl -sSf https://setup.atuin.sh | bash"; }
+_install_delta()    { _install_with_names delta "git-delta" "git-delta"; }
+_install_tldr()     { _install_with_names tldr "tlrc" "tldr"; }
+_install_yq()       { pkg_install yq; }
 
 _install_gum() {
   case "$KOS_OS" in
     macos)  brew install gum ;;
     debian)
-      # Charm's apt repo
       sudo mkdir -p /etc/apt/keyrings
       curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
       echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
@@ -142,18 +182,7 @@ gpgkey=https://repo.charm.sh/yum/gpg.key' | sudo tee /etc/yum.repos.d/charm.repo
   esac
 }
 
-# --- Category: Languages ---
-# fnm (node), bun (critical), go, rust, uv (python)
-
-install_languages() {
-  step "Languages"
-
-  install_tool "bun" critical _install_bun
-  install_tool "fnm" recommended _install_fnm
-  install_tool "go" recommended _install_go
-  install_tool "rustup" recommended _install_rust
-  install_tool "uv" recommended _install_uv
-}
+# --- Language installers ---
 
 _install_bun() {
   curl -fsSL https://bun.sh/install | bash
@@ -189,22 +218,7 @@ _install_uv() {
   curl -LsSf https://astral.sh/uv/install.sh | sh
 }
 
-# --- Category: Dev Tools ---
-# gh, claude — recommended
-
-install_dev_tools() {
-  step "Dev tools"
-
-  install_tool "gh" recommended _install_gh
-  install_tool "claude" recommended _install_claude
-  if [[ "$KOS_OS" == "macos" ]]; then
-    install_tool "orb" recommended _install_orbstack
-  fi
-}
-
-_install_orbstack() {
-  brew install orbstack
-}
+# --- Dev tool installers ---
 
 _install_gh() {
   case "$KOS_OS" in
@@ -229,16 +243,23 @@ _install_claude() {
   fi
 }
 
-# --- Category: Infrastructure ---
-# tailscale, cloudflared, syncthing — off by default, recommended
+# --- App installers ---
 
-install_infrastructure() {
-  step "Infrastructure"
-
-  install_tool "tailscale" recommended _install_tailscale
-  install_tool "cloudflared" recommended _install_cloudflared
-  install_tool "syncthing" recommended _install_syncthing
+_install_ghostty() {
+  if [[ "$KOS_OS" == "macos" ]]; then
+    warn "Ghostty: Download from https://ghostty.org/download"
+    return 1
+  else
+    warn "Ghostty on Linux: see https://ghostty.org/docs/install/binary"
+    return 1
+  fi
 }
+
+_install_orbstack() {
+  brew install orbstack
+}
+
+# --- Infrastructure installers ---
 
 _install_tailscale() {
   case "$KOS_OS" in

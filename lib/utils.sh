@@ -133,3 +133,84 @@ gum_input() {
     echo "${answer:-$default}"
   fi
 }
+
+# Per-tool multi-select with gum (or fallback)
+# Usage: gum_choose_tools "header" "display|cmd|installed|category" ...
+#   installed: 1 = already present, 0 = not installed
+# Outputs selected cmd values, one per line
+# Uninstalled tools are pre-selected by default
+gum_choose_tools() {
+  local header="$1"; shift
+
+  # Parse items into parallel arrays
+  local -a displays=() cmds=() statuses=() categories=()
+  local -a gum_labels=()
+
+  for item in "$@"; do
+    IFS='|' read -r display cmd inst cat <<< "$item"
+    displays+=("$display")
+    cmds+=("$cmd")
+    statuses+=("$inst")
+    categories+=("$cat")
+
+    local label="$display"
+    [[ "$inst" == "1" ]] && label="$display [installed]"
+    gum_labels+=("$label")
+  done
+
+  if has_gum; then
+    local chosen
+    chosen="$(gum choose --no-limit --header "$header" \
+      "${gum_labels[@]+"${gum_labels[@]}"}")" || true
+
+    # Map chosen labels back to cmds
+    while IFS= read -r line; do
+      [[ -z "$line" ]] && continue
+      local clean="${line% \[installed\]}"
+      for i in "${!displays[@]}"; do
+        if [[ "${displays[$i]}" == "$clean" ]]; then
+          echo "${cmds[$i]}"
+          break
+        fi
+      done
+    done <<< "$chosen"
+  else
+    # Fallback: numbered list grouped by category
+    echo ""
+    echo "$header"
+    local prev_cat=""
+    local i=1
+    for idx in "${!displays[@]}"; do
+      if [[ "${categories[$idx]}" != "$prev_cat" ]]; then
+        echo ""
+        echo "  --- ${categories[$idx]} ---"
+        prev_cat="${categories[$idx]}"
+      fi
+      local suffix=""
+      [[ "${statuses[$idx]}" == "1" ]] && suffix=" [installed]"
+      printf "  %2d) %s%s\n" "$i" "${displays[$idx]}" "$suffix"
+      ((i++))
+    done
+    echo ""
+    echo -n "Enter numbers (comma-separated, 'all', or Enter to skip): "
+    local selection
+    read -r selection < /dev/tty
+
+    if [[ -z "$selection" ]]; then
+      return 0
+    elif [[ "$selection" == "all" ]]; then
+      printf '%s\n' "${cmds[@]}"
+    elif [[ "$selection" == "none" ]]; then
+      return 0
+    else
+      IFS=',' read -ra nums <<< "$selection"
+      for n in "${nums[@]}"; do
+        n="${n// /}"
+        local idx=$((n - 1))
+        if [[ "$idx" -ge 0 && "$idx" -lt "${#cmds[@]}" ]]; then
+          echo "${cmds[$idx]}"
+        fi
+      done
+    fi
+  fi
+}
