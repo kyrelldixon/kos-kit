@@ -41,6 +41,7 @@ export const tools: Tool[] = [
 	{ id: "gh", name: "GitHub CLI", check: "gh", category: "dev-tools", critical: false },
 	{ id: "claude", name: "Claude Code", check: "claude", category: "dev-tools", critical: false },
 	{ id: "agent-browser", name: "agent-browser", check: "agent-browser", category: "dev-tools", critical: false },
+	{ id: "prek", name: "prek", check: "prek", category: "dev-tools", critical: false },
 	// Apps (GUI)
 	{ id: "ghostty", name: "Ghostty", check: "ghostty", category: "apps", critical: false },
 	{ id: "orb", name: "OrbStack", check: "orb", category: "apps", critical: false },

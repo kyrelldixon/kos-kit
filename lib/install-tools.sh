@@ -77,6 +77,7 @@ TOOLS_MANIFEST=(
   "gh:gh:Dev tools:recommended:_install_gh"
   "claude:claude:Dev tools:recommended:_install_claude"
   "agent-browser:agent-browser:Dev tools:recommended:_install_agent_browser"
+  "prek:prek:Dev tools:recommended:_install_prek"
 
   # Apps (GUI — skipped in --yes mode)
   "ghostty:Ghostty:Apps:recommended:_install_ghostty"
@@ -243,6 +244,10 @@ _install_claude() {
     warn "Need bun or npm to install Claude Code"
     return 1
   fi
+}
+
+_install_prek() {
+  _install_via_curl_or_pkg prek "prek" "curl -fsSL https://prek.dev/install.sh | sh"
 }
 
 _install_agent_browser() {
