@@ -244,14 +244,7 @@ _install_gh() {
 }
 
 _install_claude() {
-  if has bun; then
-    bun install -g @anthropic-ai/claude-code
-  elif has npm; then
-    npm install -g @anthropic-ai/claude-code
-  else
-    warn "Need bun or npm to install Claude Code"
-    return 1
-  fi
+  curl -fsSL https://claude.ai/install.sh | bash
 }
 
 _install_prek() {
