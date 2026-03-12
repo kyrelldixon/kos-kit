@@ -88,6 +88,7 @@ TOOLS_MANIFEST=(
   "tailscale:tailscale:Infrastructure:recommended:_install_tailscale"
   "cloudflared:cloudflared:Infrastructure:recommended:_install_cloudflared"
   "syncthing:syncthing:Infrastructure:recommended:_install_syncthing"
+  "restate:restate:Infrastructure:recommended:_install_restate"
 
   # Fun
   "figlet:figlet:Fun:recommended:_install_figlet"
@@ -318,6 +319,17 @@ _install_cloudflared() {
 
 _install_syncthing() {
   pkg_install syncthing
+}
+
+_install_restate() {
+  case "$KOS_OS" in
+    macos)
+      brew install restatedev/tap/restate-server restatedev/tap/restate
+      ;;
+    *)
+      curl --proto '=https' --tlsv1.2 -sSf https://restate.dev/install.sh | bash
+      ;;
+  esac
 }
 
 # --- Fun installers ---
