@@ -78,6 +78,7 @@ TOOLS_MANIFEST=(
   "claude:claude:Dev tools:recommended:_install_claude"
   "agent-browser:agent-browser:Dev tools:recommended:_install_agent_browser"
   "prek:prek:Dev tools:recommended:_install_prek"
+  "op:1Password CLI:Dev tools:recommended:_install_op"
 
   # Apps (GUI — skipped in --yes mode)
   "ghostty:Ghostty:Apps:recommended:_install_ghostty"
@@ -250,6 +251,25 @@ _install_claude() {
 
 _install_prek() {
   _install_via_curl_or_pkg prek "prek" "curl -fsSL https://prek.dev/install.sh | sh"
+}
+
+_install_op() {
+  case "$KOS_OS" in
+    macos) brew install --cask 1password-cli ;;
+    debian)
+      curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
+        sudo gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/$(dpkg --print-architecture) stable main" | \
+        sudo tee /etc/apt/sources.list.d/1password.list
+      sudo mkdir -p /etc/debsig/policies/AC2D62742012EA22/
+      curl -sS https://downloads.1password.com/linux/debian/debsig/1password.pol | \
+        sudo tee /etc/debsig/policies/AC2D62742012EA22/1password.pol
+      sudo mkdir -p /usr/share/debsig/keyrings/AC2D62742012EA22
+      curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
+        sudo gpg --dearmor --output /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg
+      sudo apt-get update -qq && sudo apt-get install -y 1password-cli
+      ;;
+  esac
 }
 
 _install_agent_browser() {
