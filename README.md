@@ -33,7 +33,7 @@ The installer walks you through 6 tool categories. You choose which ones to inst
 | **Terminal** | Ghostty | On |
 | **Shell** | starship, eza, bat, fd, ripgrep, fzf, zoxide, direnv, gum, atuin, git-delta, tldr, yq | On |
 | **Languages** | bun, fnm (node), go, rust, uv (python) | On |
-| **Dev tools** | gh, claude, agent-browser, orbstack (macOS) | On |
+| **Dev tools** | gh, claude, agent-browser, prek, 1password-cli, just, inngest, varlock, orbstack (macOS) | On |
 | **Infrastructure** | tailscale, cloudflared, syncthing | Off |
 
 Core tools are always installed first (they're required). Infrastructure is opt-in.
@@ -68,6 +68,7 @@ cd ~/.kos-kit && stow -R -d dotfiles -t ~ zsh git starship tmux ssh vim
 After installation, the `kos` command is available:
 
 ```bash
+kos update      # Pull latest and show what changed
 kos doctor      # Check which tools are installed, flag what's missing
 kos setup       # Configure name, email, GitHub username
 kos auth        # Authenticate gh, linear, claude
