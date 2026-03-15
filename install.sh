@@ -30,6 +30,10 @@ main() {
   # Detect environment
   detect_env
 
+  # Ensure ~/.local/bin exists and is on PATH for curl-based installers
+  mkdir -p "$HOME/.local/bin"
+  export PATH="$HOME/.local/bin:$PATH"
+
   # Ensure package manager is ready
   ensure_brew
   ensure_apt

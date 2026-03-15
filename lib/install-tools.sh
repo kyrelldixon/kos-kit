@@ -79,6 +79,9 @@ TOOLS_MANIFEST=(
   "agent-browser:agent-browser:Dev tools:recommended:_install_agent_browser"
   "prek:prek:Dev tools:recommended:_install_prek"
   "op:1Password CLI:Dev tools:recommended:_install_op"
+  "just:just:Dev tools:recommended:_install_just"
+  "inngest-cli:inngest:Dev tools:recommended:_install_inngest"
+  "varlock:varlock:Dev tools:recommended:_install_varlock"
 
   # Apps (GUI — skipped in --yes mode)
   "ghostty:Ghostty:Apps:recommended:_install_ghostty"
@@ -269,6 +272,21 @@ _install_op() {
       sudo apt-get update -qq && sudo apt-get install -y 1password-cli
       ;;
   esac
+}
+
+_install_just() {
+  curl -sSf https://just.systems/install.sh | bash -s -- --to "$HOME/.local/bin"
+}
+
+_install_inngest() {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  (cd "$tmpdir" && curl -sfL https://cli.inngest.com/install.sh | sh && mv inngest "$HOME/.local/bin/")
+  rm -rf "$tmpdir"
+}
+
+_install_varlock() {
+  curl -sSfL https://varlock.dev/install.sh | sh -s -- --dir="$HOME/.local/bin"
 }
 
 _install_agent_browser() {
