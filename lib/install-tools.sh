@@ -80,7 +80,7 @@ TOOLS_MANIFEST=(
   "prek:prek:Dev tools:recommended:_install_prek"
   "op:1Password CLI:Dev tools:recommended:_install_op"
   "just:just:Dev tools:recommended:_install_just"
-  "inngest-cli:inngest:Dev tools:recommended:_install_inngest"
+  "inngest:inngest:Dev tools:recommended:_install_inngest"
   "varlock:varlock:Dev tools:recommended:_install_varlock"
 
   # Apps (GUI — skipped in --yes mode)

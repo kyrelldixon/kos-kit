@@ -44,7 +44,7 @@ export const tools: Tool[] = [
 	{ id: "prek", name: "prek", check: "prek", category: "dev-tools", critical: false },
 	{ id: "op", name: "1Password CLI", check: "op", category: "dev-tools", critical: false },
 	{ id: "just", name: "just", check: "just", category: "dev-tools", critical: false },
-	{ id: "inngest-cli", name: "Inngest", check: "inngest-cli", category: "dev-tools", critical: false },
+	{ id: "inngest", name: "Inngest", check: "inngest", category: "dev-tools", critical: false },
 	{ id: "varlock", name: "varlock", check: "varlock", category: "dev-tools", critical: false },
 
 	// Apps (GUI)
