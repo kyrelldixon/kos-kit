@@ -1,5 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
-import { createApiClient } from "./api";
+import { ApiError, createApiClient } from "./api";
 
 describe("API client", () => {
   test("builds correct URL from base", async () => {
@@ -18,9 +18,11 @@ describe("API client", () => {
   });
 
   test("localhost requests have no auth headers", async () => {
-    let capturedInit: RequestInit = {};
+    let capturedHeaders: Record<string, string> = {};
     const mockFetch = mock(async (_url: string, init?: RequestInit) => {
-      capturedInit = init ?? {};
+      capturedHeaders = Object.fromEntries(
+        Object.entries(init?.headers ?? {}),
+      );
       return new Response(JSON.stringify([]), { status: 200 });
     });
 
@@ -29,14 +31,13 @@ describe("API client", () => {
       mockFetch,
     );
     await client.get("/api/jobs");
-    const headers = capturedInit.headers as Record<string, string>;
-    expect(headers["CF-Access-Client-Id"]).toBeUndefined();
+    expect(capturedHeaders["CF-Access-Client-Id"]).toBeUndefined();
   });
 
   test("post sends JSON body", async () => {
     let capturedBody = "";
     const mockFetch = mock(async (_url: string, init?: RequestInit) => {
-      capturedBody = init?.body as string;
+      capturedBody = String(init?.body ?? "");
       return new Response(JSON.stringify({ name: "test" }), { status: 201 });
     });
 
@@ -78,15 +79,20 @@ describe("API client", () => {
     try {
       await client.get("/api/jobs");
       expect(true).toBe(false);
-    } catch (e: unknown) {
-      expect((e as { code: string }).code).toBe("CONNECTION_ERROR");
+    } catch (e) {
+      expect(e).toBeInstanceOf(ApiError);
+      if (e instanceof ApiError) {
+        expect(e.code).toBe("CONNECTION_ERROR");
+      }
     }
   });
 
   test("remote URL attaches CF Access headers from resolver", async () => {
     let capturedHeaders: Record<string, string> = {};
     const mockFetch = mock(async (_url: string, init?: RequestInit) => {
-      capturedHeaders = (init?.headers ?? {}) as Record<string, string>;
+      capturedHeaders = Object.fromEntries(
+        Object.entries(init?.headers ?? {}),
+      );
       return new Response(JSON.stringify([]), { status: 200 });
     });
     const mockResolver = mock(async () => ({
@@ -120,8 +126,11 @@ describe("API client", () => {
     try {
       await client.get("/api/jobs");
       expect(true).toBe(false);
-    } catch (e: unknown) {
-      expect((e as { code: string }).code).toBe("AUTH_ERROR");
+    } catch (e) {
+      expect(e).toBeInstanceOf(ApiError);
+      if (e instanceof ApiError) {
+        expect(e.code).toBe("AUTH_ERROR");
+      }
     }
   });
 });
