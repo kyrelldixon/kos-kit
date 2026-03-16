@@ -8,6 +8,7 @@ import { onboardCommand } from "./commands/onboard";
 import { setupCommand } from "./commands/setup";
 import { statusCommand } from "./commands/status";
 import { updateCommand } from "./commands/update";
+import { jobsCommand } from "./commands/jobs";
 
 const main = defineCommand({
   meta: {
@@ -24,6 +25,7 @@ const main = defineCommand({
     cheatsheet: cheatsheetCommand,
     status: statusCommand,
     update: updateCommand,
+    jobs: jobsCommand,
   },
 });
 
