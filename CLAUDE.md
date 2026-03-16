@@ -13,6 +13,10 @@ This file captures gotchas, non-obvious rules, and things that were repeatedly m
 - **Co-locate test files next to source files.** `src/lib/api.ts` → `src/lib/api.test.ts`, `src/commands/jobs.ts` → `src/commands/jobs.test.ts`. Never put tests in a separate `tests/` directory.
 - **Narrow discriminated unions before accessing variant-specific fields.** `CLIResponse` has `.result` only on `SuccessResponse` — always check `if (result.ok)` before accessing `result.result`.
 
+## Secrets / Varlock
+
+- **NEVER use `varlock printenv`.** It dumps raw secret values to stdout — they leak into logs, terminal history, and tool output. Always use `varlock run -- <command>` to inject env vars into a subprocess environment.
+
 ## Repo Layout Gotchas
 
 - **Git root is `~/.kos-kit/`, not `~/.kos-kit/cli/`.** The lockfile (`bun.lock`) lives at repo root. `prek.toml` lives at repo root. Don't put repo-level config inside `cli/`.

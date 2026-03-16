@@ -32,21 +32,20 @@ export async function resolveCfAccessHeaders(): Promise<
 > {
   try {
     const cliDir = new URL("../../", import.meta.url).pathname;
-    const clientId = await Bun.$`bunx varlock printenv --path ${cliDir} CF_ACCESS_CLIENT_ID`
-      .text()
-      .then((s) => s.trim());
-    const clientSecret = await Bun.$`bunx varlock printenv --path ${cliDir} CF_ACCESS_CLIENT_SECRET`
-      .text()
-      .then((s) => s.trim());
+    // Use varlock run (NOT printenv) to inject secrets into a subprocess.
+    // The subprocess reads them from its environment and outputs JSON.
+    const json =
+      await Bun.$`bunx varlock run --path ${cliDir} -- bun -e 'console.log(JSON.stringify({"CF-Access-Client-Id":process.env.CF_ACCESS_CLIENT_ID,"CF-Access-Client-Secret":process.env.CF_ACCESS_CLIENT_SECRET}))'`
+        .text()
+        .then((s) => s.trim());
 
-    if (!clientId || !clientSecret) {
+    const headers = JSON.parse(json) as Record<string, string>;
+
+    if (!headers["CF-Access-Client-Id"] || !headers["CF-Access-Client-Secret"]) {
       throw new Error("Empty credentials");
     }
 
-    return {
-      "CF-Access-Client-Id": clientId,
-      "CF-Access-Client-Secret": clientSecret,
-    };
+    return headers;
   } catch {
     throw new ApiError(
       "AUTH_ERROR",
