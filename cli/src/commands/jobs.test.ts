@@ -1,6 +1,6 @@
 import { describe, expect, mock, test } from "bun:test";
-import type { ApiClient } from "../src/lib/api";
-import { handleList, handleCreate, buildCreateBody, handleDelete, handlePause, handleResume } from "../src/commands/jobs";
+import type { ApiClient } from "../lib/api";
+import { handleList, handleCreate, buildCreateBody, handleDelete, handlePause, handleResume } from "./jobs";
 
 function mockClient(overrides: Partial<ApiClient> = {}): ApiClient {
 	return {
@@ -17,7 +17,9 @@ describe("jobs list", () => {
 		const client = mockClient();
 		const result = await handleList(client);
 		expect(result.ok).toBe(true);
-		expect(result.result).toEqual([]);
+		if (result.ok) {
+			expect(result.result).toEqual([]);
+		}
 	});
 
 	test("returns jobs with next_actions populated", async () => {
@@ -30,8 +32,8 @@ describe("jobs list", () => {
 		});
 		const result = await handleList(client);
 		expect(result.ok).toBe(true);
-		expect(result.result).toEqual(jobs);
 		if (result.ok) {
+			expect(result.result).toEqual(jobs);
 			// next_actions should reference actual job names
 			const deleteAction = result.next_actions.find((a) =>
 				a.command.includes("delete"),
@@ -206,7 +208,9 @@ describe("jobs create", () => {
 		};
 		const result = await handleCreate(client, "test-job", body);
 		expect(result.ok).toBe(true);
-		expect(result.result).toEqual(created);
+		if (result.ok) {
+			expect(result.result).toEqual(created);
+		}
 	});
 
 	test("returns CONFLICT on 409", async () => {
