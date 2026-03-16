@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { categories, tools, toolsByCategory } from "../src/lib/tools";
+import { categories, tools, toolsByCategory } from "./tools";
 
 describe("tools registry", () => {
   test("has tools defined", () => {

@@ -20,7 +20,7 @@ export interface ApiClient {
   del(path: string): Promise<ApiResponse>;
 }
 
-type FetchFn = typeof globalThis.fetch;
+type FetchFn = (url: string, init?: RequestInit) => Promise<Response>;
 type CredentialResolver = () => Promise<Record<string, string>>;
 
 function isLocalhost(baseUrl: string): boolean {

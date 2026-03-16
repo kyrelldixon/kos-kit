@@ -1,5 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
-import { createApiClient } from "../src/lib/api";
+import { createApiClient } from "./api";
 
 describe("API client", () => {
   test("builds correct URL from base", async () => {
@@ -11,7 +11,7 @@ describe("API client", () => {
 
     const client = createApiClient(
       "http://localhost:9080",
-      mockFetch as typeof fetch,
+      mockFetch,
     );
     await client.get("/api/jobs");
     expect(capturedUrl).toBe("http://localhost:9080/api/jobs");
@@ -26,7 +26,7 @@ describe("API client", () => {
 
     const client = createApiClient(
       "http://localhost:9080",
-      mockFetch as typeof fetch,
+      mockFetch,
     );
     await client.get("/api/jobs");
     const headers = capturedInit.headers as Record<string, string>;
@@ -42,7 +42,7 @@ describe("API client", () => {
 
     const client = createApiClient(
       "http://localhost:9080",
-      mockFetch as typeof fetch,
+      mockFetch,
     );
     const body = {
       name: "test-job",
@@ -59,7 +59,7 @@ describe("API client", () => {
 
     const client = createApiClient(
       "http://localhost:9080",
-      mockFetch as typeof fetch,
+      mockFetch,
     );
     const result = await client.del("/api/jobs/test-job");
     expect(result.status).toBe(204);
@@ -73,7 +73,7 @@ describe("API client", () => {
 
     const client = createApiClient(
       "http://localhost:9080",
-      mockFetch as typeof fetch,
+      mockFetch,
     );
     try {
       await client.get("/api/jobs");
@@ -96,7 +96,7 @@ describe("API client", () => {
 
     const client = createApiClient(
       "https://kos.kyrelldixon.com",
-      mockFetch as typeof fetch,
+      mockFetch,
       mockResolver,
     );
     await client.get("/api/jobs");
@@ -114,7 +114,7 @@ describe("API client", () => {
 
     const client = createApiClient(
       "https://kos.kyrelldixon.com",
-      mockFetch as typeof fetch,
+      mockFetch,
       mockResolver,
     );
     try {

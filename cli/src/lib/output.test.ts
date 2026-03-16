@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { type NextAction, error, success } from "../src/lib/output";
+import { type NextAction, error, success } from "./output";
 
 describe("output helpers", () => {
   test("success returns correct envelope", () => {
