@@ -9,6 +9,7 @@ export interface KosConfig {
   email?: string;
   github?: string;
   onboard_progress?: number;
+  api_url?: string;
 }
 
 export async function loadConfig(): Promise<KosConfig> {
