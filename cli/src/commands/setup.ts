@@ -23,7 +23,25 @@ export const setupCommand = defineCommand({
     config.email = email;
     config.github = github;
     await saveConfig(config);
-    console.log("\nSaved to ~/.kos/config.json");
+    // Auto-detect API URL
+    console.log("\nDetecting kos-agent API...");
+    let apiUrl = "https://kos.kyrelldixon.com";
+    try {
+      const res = await fetch("http://localhost:9080/health", {
+        signal: AbortSignal.timeout(2000),
+      });
+      if (res.ok) {
+        apiUrl = "http://localhost:9080";
+        console.log("Found local kos-agent at localhost:9080");
+      }
+    } catch {
+      console.log(
+        "No local kos-agent — using remote: https://kos.kyrelldixon.com",
+      );
+    }
+    config.api_url = apiUrl;
+    await saveConfig(config);
+    console.log("Saved to ~/.kos/config.json");
 
     // Write .gitconfig.local
     const gitconfigLocal = join(homedir(), ".gitconfig.local");
