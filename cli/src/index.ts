@@ -10,6 +10,7 @@ import { statusCommand } from "./commands/status";
 import { updateCommand } from "./commands/update";
 import { jobsCommand } from "./commands/jobs";
 import { configCommand } from "./commands/config";
+import { captureCommand } from "./commands/capture";
 
 const main = defineCommand({
   meta: {
@@ -28,6 +29,7 @@ const main = defineCommand({
     update: updateCommand,
     jobs: jobsCommand,
     config: configCommand,
+    capture: captureCommand,
   },
 });
 
