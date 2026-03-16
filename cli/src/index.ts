@@ -10,21 +10,21 @@ import { statusCommand } from "./commands/status";
 import { updateCommand } from "./commands/update";
 
 const main = defineCommand({
-	meta: {
-		name: "kos",
-		description: "kos-kit — dev environment CLI",
-		version: "0.1.0",
-	},
-	subCommands: {
-		doctor: doctorCommand,
-		install: installCommand,
-		setup: setupCommand,
-		auth: authCommand,
-		onboard: onboardCommand,
-		cheatsheet: cheatsheetCommand,
-		status: statusCommand,
-		update: updateCommand,
-	},
+  meta: {
+    name: "kos",
+    description: "kos-kit — dev environment CLI",
+    version: "0.1.0",
+  },
+  subCommands: {
+    doctor: doctorCommand,
+    install: installCommand,
+    setup: setupCommand,
+    auth: authCommand,
+    onboard: onboardCommand,
+    cheatsheet: cheatsheetCommand,
+    status: statusCommand,
+    update: updateCommand,
+  },
 });
 
 runMain(main);
