@@ -198,6 +198,107 @@ export async function handleCreate(
 	]);
 }
 
+export async function handleDelete(
+	client: ApiClient,
+	name: string,
+): Promise<CLIResponse> {
+	const res = await client.del(`/api/jobs/${name}`);
+
+	if (res.status === 404) {
+		return error(
+			`kos jobs delete ${name}`,
+			"NOT_FOUND",
+			`Job '${name}' not found`,
+			"Run kos jobs list to see available jobs",
+			[{ command: "kos jobs list", description: "List all jobs" }],
+		);
+	}
+
+	if (res.status !== 204) {
+		return error(
+			`kos jobs delete ${name}`,
+			"API_ERROR",
+			`Unexpected status ${res.status}`,
+			"Check the server logs",
+			[],
+		);
+	}
+
+	return success(`kos jobs delete ${name}`, { deleted: name }, [
+		{ command: "kos jobs list", description: "List remaining jobs" },
+	]);
+}
+
+export async function handlePause(
+	client: ApiClient,
+	name: string,
+): Promise<CLIResponse> {
+	const res = await client.patch(`/api/jobs/${name}`, { disabled: true });
+
+	if (res.status === 404) {
+		return error(
+			`kos jobs pause ${name}`,
+			"NOT_FOUND",
+			`Job '${name}' not found`,
+			"Run kos jobs list to see available jobs",
+			[{ command: "kos jobs list", description: "List all jobs" }],
+		);
+	}
+
+	if (res.status !== 200) {
+		return error(
+			`kos jobs pause ${name}`,
+			"API_ERROR",
+			`Unexpected status ${res.status}`,
+			"Check the server logs",
+			[],
+		);
+	}
+
+	return success(`kos jobs pause ${name}`, res.data, [
+		{
+			command: `kos jobs resume ${name}`,
+			description: "Resume this job",
+		},
+		{ command: "kos jobs list", description: "List all jobs" },
+	]);
+}
+
+export async function handleResume(
+	client: ApiClient,
+	name: string,
+): Promise<CLIResponse> {
+	const res = await client.patch(`/api/jobs/${name}`, { disabled: false });
+
+	if (res.status === 404) {
+		return error(
+			`kos jobs resume ${name}`,
+			"NOT_FOUND",
+			`Job '${name}' not found`,
+			"Run kos jobs list to see available jobs",
+			[{ command: "kos jobs list", description: "List all jobs" }],
+		);
+	}
+
+	if (res.status !== 200) {
+		return error(
+			`kos jobs resume ${name}`,
+			"API_ERROR",
+			`Unexpected status ${res.status}`,
+			"Check the server logs",
+			[],
+		);
+	}
+
+	return success(`kos jobs resume ${name}`, res.data, [
+		{
+			command: `kos jobs pause ${name}`,
+			description: "Pause this job",
+		},
+		{ command: "kos jobs list", description: "List all jobs" },
+	]);
+}
+
 // --- Subcommands ---
 
 const listCommand = defineCommand({
@@ -250,6 +351,51 @@ const createCommand = defineCommand({
 	},
 });
 
+const deleteCommand = defineCommand({
+	meta: { name: "delete", description: "Delete a scheduled job" },
+	args: {
+		name: { type: "positional", description: "Job name", required: true },
+	},
+	async run({ args }) {
+		const client = await getClient();
+		try {
+			output(await handleDelete(client, args.name));
+		} catch (e) {
+			outputError(`kos jobs delete ${args.name}`, e);
+		}
+	},
+});
+
+const pauseCommand = defineCommand({
+	meta: { name: "pause", description: "Pause a scheduled job" },
+	args: {
+		name: { type: "positional", description: "Job name", required: true },
+	},
+	async run({ args }) {
+		const client = await getClient();
+		try {
+			output(await handlePause(client, args.name));
+		} catch (e) {
+			outputError(`kos jobs pause ${args.name}`, e);
+		}
+	},
+});
+
+const resumeCommand = defineCommand({
+	meta: { name: "resume", description: "Resume a paused job" },
+	args: {
+		name: { type: "positional", description: "Job name", required: true },
+	},
+	async run({ args }) {
+		const client = await getClient();
+		try {
+			output(await handleResume(client, args.name));
+		} catch (e) {
+			outputError(`kos jobs resume ${args.name}`, e);
+		}
+	},
+});
+
 // --- Main export ---
 
 export const jobsCommand = defineCommand({
@@ -257,6 +403,9 @@ export const jobsCommand = defineCommand({
 	subCommands: {
 		list: listCommand,
 		create: createCommand,
+		delete: deleteCommand,
+		pause: pauseCommand,
+		resume: resumeCommand,
 	},
 });
 

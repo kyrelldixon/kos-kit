@@ -1,6 +1,6 @@
 import { describe, expect, mock, test } from "bun:test";
 import type { ApiClient } from "../src/lib/api";
-import { handleList, handleCreate, buildCreateBody } from "../src/commands/jobs";
+import { handleList, handleCreate, buildCreateBody, handleDelete, handlePause, handleResume } from "../src/commands/jobs";
 
 function mockClient(overrides: Partial<ApiClient> = {}): ApiClient {
 	return {
@@ -226,6 +226,82 @@ describe("jobs create", () => {
 		expect(result.ok).toBe(false);
 		if (!result.ok) {
 			expect(result.error.code).toBe("CONFLICT");
+		}
+	});
+});
+
+describe("jobs delete", () => {
+	test("returns synthesized success on 204", async () => {
+		const client = mockClient({
+			del: mock(async () => ({ status: 204, data: null })),
+		});
+		const result = await handleDelete(client, "water-reminder");
+		expect(result.ok).toBe(true);
+		if (result.ok) {
+			expect(result.result).toEqual({ deleted: "water-reminder" });
+		}
+	});
+
+	test("returns NOT_FOUND on 404", async () => {
+		const client = mockClient({
+			del: mock(async () => ({
+				status: 404,
+				data: { error: "Job 'nope' not found" },
+			})),
+		});
+		const result = await handleDelete(client, "nope");
+		expect(result.ok).toBe(false);
+		if (!result.ok) {
+			expect(result.error.code).toBe("NOT_FOUND");
+		}
+	});
+});
+
+describe("jobs pause", () => {
+	test("returns updated job on success", async () => {
+		const updated = { name: "test", disabled: true };
+		const client = mockClient({
+			patch: mock(async () => ({ status: 200, data: updated })),
+		});
+		const result = await handlePause(client, "test");
+		expect(result.ok).toBe(true);
+		if (result.ok) {
+			expect(result.result).toEqual(updated);
+			const resumeAction = result.next_actions.find((a) =>
+				a.command.includes("resume"),
+			);
+			expect(resumeAction).toBeDefined();
+		}
+	});
+});
+
+describe("jobs resume", () => {
+	test("returns updated job on success", async () => {
+		const updated = { name: "test", disabled: false };
+		const client = mockClient({
+			patch: mock(async () => ({ status: 200, data: updated })),
+		});
+		const result = await handleResume(client, "test");
+		expect(result.ok).toBe(true);
+		if (result.ok) {
+			const pauseAction = result.next_actions.find((a) =>
+				a.command.includes("pause"),
+			);
+			expect(pauseAction).toBeDefined();
+		}
+	});
+
+	test("returns NOT_FOUND on 404", async () => {
+		const client = mockClient({
+			patch: mock(async () => ({
+				status: 404,
+				data: { error: "Job 'nope' not found" },
+			})),
+		});
+		const result = await handleResume(client, "nope");
+		expect(result.ok).toBe(false);
+		if (!result.ok) {
+			expect(result.error.code).toBe("NOT_FOUND");
 		}
 	});
 });
