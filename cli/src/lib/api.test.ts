@@ -87,41 +87,56 @@ describe("API client", () => {
     }
   });
 
-  test("remote URL attaches CF Access headers from resolver", async () => {
-    let capturedHeaders: Record<string, string> = {};
-    const mockFetch = mock(async (_url: string, init?: RequestInit) => {
-      capturedHeaders = Object.fromEntries(
-        Object.entries(init?.headers ?? {}),
-      );
-      return new Response(JSON.stringify([]), { status: 200 });
-    });
-    const mockResolver = mock(async () => ({
-      "CF-Access-Client-Id": "test-id",
-      "CF-Access-Client-Secret": "test-secret",
-    }));
+  test("remote URL delegates to remoteFetchFn", async () => {
+    let capturedMethod = "";
+    let capturedUrl = "";
+    const mockRemoteFetch = mock(
+      async (method: string, url: string) => {
+        capturedMethod = method;
+        capturedUrl = url;
+        return { status: 200, data: [{ name: "test-job" }] };
+      },
+    );
 
     const client = createApiClient(
       "https://kos.kyrelldixon.com",
-      mockFetch,
-      mockResolver,
+      globalThis.fetch,
+      mockRemoteFetch,
     );
-    await client.get("/api/jobs");
-    expect(capturedHeaders["CF-Access-Client-Id"]).toBe("test-id");
-    expect(capturedHeaders["CF-Access-Client-Secret"]).toBe("test-secret");
+    const result = await client.get("/api/jobs");
+    expect(capturedMethod).toBe("GET");
+    expect(capturedUrl).toBe("https://kos.kyrelldixon.com/api/jobs");
+    expect(result.data).toEqual([{ name: "test-job" }]);
   });
 
-  test("throws AUTH_ERROR when credential resolver fails", async () => {
-    const mockFetch = mock(
-      async () => new Response("", { status: 200 }),
+  test("remote URL passes body to remoteFetchFn", async () => {
+    let capturedBody: unknown;
+    const mockRemoteFetch = mock(
+      async (_method: string, _url: string, body?: unknown) => {
+        capturedBody = body;
+        return { status: 201, data: { name: "test-job" } };
+      },
     );
-    const mockResolver = mock(async () => {
-      throw new Error("1Password locked");
+
+    const client = createApiClient(
+      "https://kos.kyrelldixon.com",
+      globalThis.fetch,
+      mockRemoteFetch,
+    );
+    const body = { name: "test-job", schedule: { type: "periodic", seconds: 60 } };
+    await client.post("/api/jobs", body);
+    expect(capturedBody).toEqual(body);
+  });
+
+  test("throws AUTH_ERROR when remoteFetchFn fails with auth error", async () => {
+    const mockRemoteFetch = mock(async () => {
+      throw new ApiError("AUTH_ERROR", "Could not resolve CF Access credentials");
     });
 
     const client = createApiClient(
       "https://kos.kyrelldixon.com",
-      mockFetch,
-      mockResolver,
+      globalThis.fetch,
+      mockRemoteFetch,
     );
     try {
       await client.get("/api/jobs");

@@ -1,3 +1,6 @@
+import { homedir } from "node:os";
+import { join } from "node:path";
+
 export class ApiError extends Error {
   code: string;
   status?: number;
@@ -21,35 +24,62 @@ export interface ApiClient {
 }
 
 type FetchFn = (url: string, init?: RequestInit) => Promise<Response>;
-type CredentialResolver = () => Promise<Record<string, string>>;
+type RemoteFetchFn = (
+  method: string,
+  url: string,
+  body?: unknown,
+) => Promise<ApiResponse>;
 
 function isLocalhost(baseUrl: string): boolean {
   return baseUrl.startsWith("http://localhost");
 }
 
-export async function resolveCfAccessHeaders(): Promise<
-  Record<string, string>
-> {
-  try {
-    const cliDir = new URL("../../", import.meta.url).pathname;
-    // Use varlock run (NOT printenv) to inject secrets into a subprocess.
-    // The subprocess reads them from its environment and outputs JSON.
-    const json =
-      await Bun.$`bunx varlock run --path ${cliDir} -- bun -e 'console.log(JSON.stringify({"CF-Access-Client-Id":process.env.CF_ACCESS_CLIENT_ID,"CF-Access-Client-Secret":process.env.CF_ACCESS_CLIENT_SECRET}))'`
-        .text()
-        .then((s) => s.trim());
+/**
+ * For remote URLs, run the entire fetch inside `varlock run` so credentials
+ * never leave the subprocess environment. Returns {status, data}.
+ */
+export async function varlockFetch(
+  method: string,
+  url: string,
+  body?: unknown,
+): Promise<ApiResponse> {
+  const cliDir = join(homedir(), ".kos-kit", "cli");
+  const script = `
+    const res = await fetch(${JSON.stringify(url)}, {
+      method: ${JSON.stringify(method)},
+      headers: {
+        "Content-Type": "application/json",
+        "CF-Access-Client-Id": process.env.CF_ACCESS_CLIENT_ID,
+        "CF-Access-Client-Secret": process.env.CF_ACCESS_CLIENT_SECRET,
+      },
+      ${body ? `body: ${JSON.stringify(JSON.stringify(body))},` : ""}
+    });
+    const data = res.status === 204 ? null : await res.json();
+    console.log(JSON.stringify({ status: res.status, data }));
+  `;
 
-    const headers = JSON.parse(json) as Record<string, string>;
+  const result = Bun.spawnSync(
+    ["bunx", "varlock", "run", "--path", cliDir, "--", "bun", "-e", script],
+    { stdout: "pipe", stderr: "pipe" },
+  );
 
-    if (!headers["CF-Access-Client-Id"] || !headers["CF-Access-Client-Secret"]) {
-      throw new Error("Empty credentials");
+  if (result.exitCode !== 0) {
+    const stderr = result.stderr.toString().trim();
+    if (stderr.includes("1Password") || stderr.includes("varlock")) {
+      throw new ApiError(
+        "AUTH_ERROR",
+        "Could not resolve CF Access credentials",
+      );
     }
+    throw new ApiError("CONNECTION_ERROR", stderr || "Remote fetch failed");
+  }
 
-    return headers;
+  try {
+    return JSON.parse(result.stdout.toString().trim()) as ApiResponse;
   } catch {
     throw new ApiError(
-      "AUTH_ERROR",
-      "Could not resolve CF Access credentials",
+      "CONNECTION_ERROR",
+      "Invalid response from remote fetch",
     );
   }
 }
@@ -57,7 +87,7 @@ export async function resolveCfAccessHeaders(): Promise<
 export function createApiClient(
   baseUrl: string,
   fetchFn: FetchFn = globalThis.fetch,
-  credentialResolver: CredentialResolver = resolveCfAccessHeaders,
+  remoteFetchFn: RemoteFetchFn = varlockFetch,
 ): ApiClient {
   async function request(
     method: string,
@@ -65,22 +95,16 @@ export function createApiClient(
     body?: unknown,
   ): Promise<ApiResponse> {
     const url = `${baseUrl}${path}`;
+
+    // Remote: delegate entire fetch to varlock run subprocess
+    if (!isLocalhost(baseUrl)) {
+      return remoteFetchFn(method, url, body);
+    }
+
+    // Local: direct fetch, no auth needed
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-
-    if (!isLocalhost(baseUrl)) {
-      try {
-        const cfHeaders = await credentialResolver();
-        Object.assign(headers, cfHeaders);
-      } catch (e) {
-        if (e instanceof ApiError) throw e;
-        throw new ApiError(
-          "AUTH_ERROR",
-          "Could not resolve CF Access credentials",
-        );
-      }
-    }
 
     let response: Response;
     try {
