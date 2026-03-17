@@ -82,6 +82,7 @@ TOOLS_MANIFEST=(
   "just:just:Dev tools:recommended:_install_just"
   "inngest:inngest:Dev tools:recommended:_install_inngest"
   "varlock:varlock:Dev tools:recommended:_install_varlock"
+  "yt-dlp:yt-dlp:Dev tools:recommended:_install_yt_dlp"
 
   # Apps (GUI — skipped in --yes mode)
   "ghostty:Ghostty:Apps:recommended:_install_ghostty"
@@ -287,6 +288,22 @@ _install_inngest() {
 
 _install_varlock() {
   curl -sSfL https://varlock.dev/install.sh | sh -s -- --dir="$HOME/.local/bin"
+}
+
+_install_yt_dlp() {
+  case "$KOS_OS" in
+    macos) brew install yt-dlp ;;
+    *)
+      if has uv; then
+        uv tool install yt-dlp
+      elif has pip; then
+        pip install yt-dlp
+      else
+        warn "Need brew, uv, or pip to install yt-dlp"
+        return 1
+      fi
+      ;;
+  esac
 }
 
 _install_agent_browser() {

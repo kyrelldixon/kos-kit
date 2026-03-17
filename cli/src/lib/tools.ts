@@ -173,6 +173,13 @@ export const tools: Tool[] = [
     category: "dev-tools",
     critical: false,
   },
+  {
+    id: "yt-dlp",
+    name: "yt-dlp",
+    check: "yt-dlp",
+    category: "dev-tools",
+    critical: false,
+  },
 
   // Apps (GUI)
   {
