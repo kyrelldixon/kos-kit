@@ -142,8 +142,10 @@ export const captureCommand = defineCommand({
 			}
 
 			const mode = args.full ? "full" : args.quick ? "quick" : undefined;
-			const destination = args.channel
-				? { chatId: args.channel, threadId: args.thread }
+			const channel = args.channel ?? process.env.KOS_SLACK_CHANNEL;
+			const thread = args.thread ?? process.env.KOS_SLACK_THREAD;
+			const destination = channel
+				? { chatId: channel, threadId: thread }
 				: undefined;
 
 			output(
