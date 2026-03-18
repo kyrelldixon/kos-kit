@@ -11,6 +11,7 @@ interface CaptureOptions {
 	mode?: string;
 	type?: string;
 	title?: string;
+	destination?: { chatId: string; threadId?: string };
 }
 
 export async function handleCapture(
@@ -27,6 +28,8 @@ export async function handleCapture(
 		if (options.mode) body.mode = options.mode;
 		if (options.type) body.type = options.type;
 	}
+
+	if (options.destination) body.destination = options.destination;
 
 	const res = await client.post("/api/capture", body);
 
@@ -92,6 +95,14 @@ export const captureCommand = defineCommand({
 		},
 		file: { type: "string", description: "Local file path to capture" },
 		title: { type: "string", description: "Title for file captures" },
+		channel: {
+			type: "string",
+			description: "Slack channel ID for notifications",
+		},
+		thread: {
+			type: "string",
+			description: "Slack thread timestamp for notifications",
+		},
 	},
 	async run({ args }) {
 		const client = await getClient();
@@ -131,6 +142,9 @@ export const captureCommand = defineCommand({
 			}
 
 			const mode = args.full ? "full" : args.quick ? "quick" : undefined;
+			const destination = args.channel
+				? { chatId: args.channel, threadId: args.thread }
+				: undefined;
 
 			output(
 				await handleCapture(client, {
@@ -139,6 +153,7 @@ export const captureCommand = defineCommand({
 					mode,
 					type: args.type,
 					title: args.title,
+					destination,
 				}),
 			);
 		} catch (e) {

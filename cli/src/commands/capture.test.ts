@@ -76,6 +76,27 @@ describe("handleCapture", () => {
 			expect(result.error.code).toBe("API_ERROR");
 		}
 	});
+
+	test("sends destination when provided", async () => {
+		const client = mockClient();
+		await handleCapture(client, {
+			urls: ["https://example.com"],
+			destination: { chatId: "C123", threadId: "ts456" },
+		});
+		const postCall = (client.post as ReturnType<typeof mock>).mock.calls[0];
+		const body = postCall[1];
+		expect(body).toHaveProperty("destination", { chatId: "C123", threadId: "ts456" });
+	});
+
+	test("omits destination when not provided", async () => {
+		const client = mockClient();
+		await handleCapture(client, {
+			urls: ["https://example.com"],
+		});
+		const postCall = (client.post as ReturnType<typeof mock>).mock.calls[0];
+		const body = postCall[1];
+		expect(body).not.toHaveProperty("destination");
+	});
 });
 
 describe("parseBatchFile", () => {
