@@ -105,6 +105,7 @@ alias mv='mv -iv'
 alias cp='cp -riv'
 alias mkdir='mkdir -vp'
 alias pwdc='pwd | pbcopy'
+command -v trash &>/dev/null && alias rm='trash'  # safe rm → macOS Trash
 
 # ls: eza → lsd → ls fallback
 if command -v eza &>/dev/null; then

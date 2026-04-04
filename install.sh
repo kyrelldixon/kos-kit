@@ -115,7 +115,6 @@ main() {
     info "Installing workspace dependencies"
     bun install --silent --cwd "$KOS_DIR"
     info "Linking CLIs to PATH"
-    bun link --silent --cwd "$KOS_DIR/tools/linear"
     bun link --silent --cwd "$KOS_DIR/tools/tmx"
     bun link --silent --cwd "$KOS_DIR/cli"
   else
