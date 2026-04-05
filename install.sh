@@ -116,6 +116,7 @@ main() {
     bun install --silent --cwd "$KOS_DIR"
     info "Linking CLIs to PATH"
     bun link --silent --cwd "$KOS_DIR/tools/tmx"
+    bun link --silent --cwd "$KOS_DIR/tools/transcribe"
     bun link --silent --cwd "$KOS_DIR/cli"
   else
     warn "Bun not available, skipping CLI linking"

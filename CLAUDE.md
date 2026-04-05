@@ -17,6 +17,13 @@ This file captures gotchas, non-obvious rules, and things that were repeatedly m
 
 - **NEVER use `varlock printenv`.** It dumps raw secret values to stdout — they leak into logs, terminal history, and tool output. Always use `varlock run -- <command>` to inject env vars into a subprocess environment.
 
+## Tools
+
+Workspace tools live in `tools/`. Each is a standalone Bun CLI linked to PATH via `bun link`:
+
+- **tmx** — tmux wrapper for agent use
+- **transcribe** — transcribe audio files to text via ElevenLabs (`ELEVENLABS_API_KEY` required)
+
 ## Repo Layout Gotchas
 
 - **Git root is `~/.kos-kit/`, not `~/.kos-kit/cli/`.** The lockfile (`bun.lock`) lives at repo root. `prek.toml` lives at repo root. Don't put repo-level config inside `cli/`.
