@@ -58,20 +58,28 @@ export async function varlockFetch(
     console.log(JSON.stringify({ status: res.status, data }));
   `;
 
+  const varlockBin = join(cliDir, "node_modules", ".bin", "varlock");
   const result = Bun.spawnSync(
-    ["bunx", "varlock", "run", "--path", cliDir, "--", "bun", "-e", script],
+    [varlockBin, "run", "--path", cliDir, "--", "bun", "-e", script],
     { stdout: "pipe", stderr: "pipe" },
   );
 
   if (result.exitCode !== 0) {
     const stderr = result.stderr.toString().trim();
-    if (stderr.includes("1Password") || stderr.includes("varlock")) {
+    if (
+      stderr.includes("not signed in") ||
+      stderr.includes("unlock") ||
+      stderr.includes("authorization prompt")
+    ) {
       throw new ApiError(
         "AUTH_ERROR",
         "Could not resolve CF Access credentials",
       );
     }
-    throw new ApiError("CONNECTION_ERROR", stderr || "Remote fetch failed");
+    throw new ApiError(
+      "VARLOCK_ERROR",
+      stderr || "varlock run failed",
+    );
   }
 
   try {

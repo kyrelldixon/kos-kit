@@ -187,6 +187,8 @@ function getFix(code: string): string {
 			return "Is the kos-agent server running? Check: curl http://localhost:9080/health";
 		case "AUTH_ERROR":
 			return "Unlock 1Password or run: op signin";
+		case "VARLOCK_ERROR":
+			return "Run: cd ~/.kos-kit/cli && bun install";
 		default:
 			return "Check the server logs";
 	}
