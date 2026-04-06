@@ -17,7 +17,7 @@ hooks = [
     id = "biome-check",
     name = "Biome check",
     language = "system",
-    entry = "bunx biome check --config-path cli/biome.json --write",
+    entry = "bunx biome check --config-path cli/biome.json --write --error-on-warnings",
     files = "cli/.*\\.(ts|tsx|js|jsx|json)$",
     pass_filenames = true,
   },
