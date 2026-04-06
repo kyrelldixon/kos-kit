@@ -10,7 +10,7 @@ export const authCommand = defineCommand({
     console.log("========\n");
 
     await runAuth("GitHub CLI", "gh", ["auth", "login"]);
-    await runAuth("Linear CLI", "linear", ["auth"]);
+    await runAuth("Linear CLI", "linear", ["auth", "login"]);
     await runAuth("Claude Code", "claude", ["login"]);
   },
 });
