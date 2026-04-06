@@ -85,7 +85,7 @@ kos-kit/
 ├── install.sh          # Interactive installer
 ├── lib/                # Bash modules (detect, utils, install, dotfiles)
 ├── dotfiles/           # GNU Stow packages (zsh, git, tmux, etc.)
-├── tools/              # CLIs (linear, tmx)
+├── tools/              # CLIs (tmx, transcribe)
 ├── cli/                # kos meta-CLI (Bun + citty)
 ├── lessons/            # Onboard lessons
 └── package.json        # Bun workspaces
