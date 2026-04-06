@@ -83,6 +83,7 @@ TOOLS_MANIFEST=(
   "inngest:inngest:Dev tools:recommended:_install_inngest"
   "varlock:varlock:Dev tools:recommended:_install_varlock"
   "yt-dlp:yt-dlp:Dev tools:recommended:_install_yt_dlp"
+  "linear:linear:Dev tools:recommended:_install_linear:macos"
 
   # Apps (GUI — skipped in --yes mode)
   "ghostty:Ghostty:Apps:recommended:_install_ghostty"
@@ -305,6 +306,8 @@ _install_yt_dlp() {
       ;;
   esac
 }
+
+_install_linear() { brew install schpet/tap/linear; }
 
 _install_agent_browser() {
   case "$KOS_OS" in
