@@ -178,10 +178,10 @@ No other changes to this file. The `runAuth` helper, the `gh auth login` and `cl
 Run:
 
 ```bash
-bun run --cwd cli tsc --noEmit
+(cd cli && bunx tsc --noEmit -p tsconfig.json)
 ```
 
-Expected: exits 0 with no output (or `tsc` prints nothing). If it errors, it's unrelated to this single-line string change — stop and investigate.
+Expected: exits 0 with no output (or `tsc` prints nothing). If it errors, it's unrelated to this single-line string change — stop and investigate. Note: `bun run --cwd` does not accept a `--cwd` positional the way `npm run --prefix` does; use a subshell `(cd ... && ...)` or rely on the prek pre-commit TypeScript hook (which runs automatically on commit via `prek.toml`) to catch type errors.
 
 - [ ] **Step 4: Confirm biome is clean on the modified file**
 
