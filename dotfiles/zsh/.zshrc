@@ -96,6 +96,23 @@ alias ba='bun add'
 alias bad='bun add -D'
 alias bl='bun run lint'
 
+# --- Claude Code ---
+# Default to deepest reasoning and summarized thinking output.
+# --thinking-display is a hidden flag (not shown in `claude --help`) — run
+# `claude-hidden-flags` after each update to rediscover hidden flags.
+alias claude='claude --effort max --thinking-display summarized'
+
+# List hidden Claude Code CLI flags by diffing commander.js-style flag
+# signatures in the binary against `claude --help`. Hidden flags are
+# experimental/internal and can change between versions without notice.
+claude-hidden-flags() {
+  local bin
+  bin=$(command -v claude) || { echo "claude not found" >&2; return 1; }
+  comm -23 \
+    <(strings "$bin" | grep -E '^--[a-z][a-z0-9-]+ <[a-zA-Z][a-zA-Z0-9]*\.{0,3}>$' | awk '{print $1}' | sort -u) \
+    <(command claude --help 2>&1 | grep -oE '\-\-[a-z][a-z0-9-]+' | sort -u)
+}
+
 # --- Zsh config aliases ---
 alias zsho='${EDITOR:-vim} ~/.zshrc'
 alias zshr='source ~/.zshrc'
