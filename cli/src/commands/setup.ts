@@ -65,7 +65,18 @@ export const setupCommand = defineCommand({
         name: "pull",
         description: "git pull --ff-only",
       },
-      async () => {},
+      async () => {
+        const proc = Bun.spawn(
+          ["git", "-C", ctx.kosDir, "pull", "--ff-only"],
+          { stdio: ["inherit", "inherit", "inherit"] },
+        );
+        const code = await proc.exited;
+        if (code !== 0) {
+          console.warn(
+            "  ! git pull failed (non-fast-forward or dirty tree); continuing with local copy",
+          );
+        }
+      },
     );
 
     console.log("\nDone.");
