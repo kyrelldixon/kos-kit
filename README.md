@@ -2,93 +2,91 @@
 
 Dev environment kit — tools, dotfiles, and CLI for agentic workflows.
 
-## Bootstrap
+## Install
 
-One command to set up a fresh machine:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/kyrelldixon/kos-kit/main/bootstrap.sh | bash
-```
-
-This will:
-1. Install git (if missing)
-2. Clone kos-kit to `~/.kos-kit`
-3. Launch the interactive installer
-
-Non-interactive (install all defaults, no prompts):
+One command on a fresh machine:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kyrelldixon/kos-kit/main/bootstrap.sh | bash -s -- --yes
+curl -fsSL https://raw.githubusercontent.com/kyrelldixon/kos-kit/main/install.sh | bash
 ```
 
-> Already have it cloned? Run `bash ~/.kos-kit/install.sh` to re-run the installer.
+This installs prerequisites (`mise`, `chezmoi`, `bun`, `gum`), clones kos-kit to `~/.kos-kit`, and runs `kos setup`.
+
+Non-interactive (install defaults, no prompts):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/kyrelldixon/kos-kit/main/install.sh | bash -s -- --yes
+```
+
+> Already have it cloned? Run `kos setup` to re-run the install/update flow.
 
 ## What Gets Installed
 
-The installer walks you through 6 tool categories. You choose which ones to install — each category shows exactly what tools it includes.
+Four layers, each declarative:
 
-| Category | Tools | Default |
-|----------|-------|---------|
-| **Core** | git, zsh, tmux, stow, curl, jq | Always |
-| **Terminal** | Ghostty | On |
-| **Shell** | starship, eza, bat, fd, ripgrep, fzf, zoxide, direnv, gum, atuin, git-delta, tldr, yq | On |
-| **Languages** | bun, fnm (node), go, rust, uv (python) | On |
-| **Dev tools** | gh, claude, agent-browser, prek, 1password-cli, just, inngest, varlock, orbstack (macOS) | On |
-| **Infrastructure** | tailscale, cloudflared, syncthing | Off |
+| Layer | File | What |
+|---|---|---|
+| Lang/CLI tools | `mise.toml` (+ `mise.lock`) | bun, node, go, rust, uv, plus CLIs: starship, eza, bat, fd, ripgrep, fzf, zoxide, direnv, delta, yq, atuin, gh, just, prek |
+| System/GUI tools | `kit.toml` | git, zsh, tmux, jq, gum, tldr, Ghostty, OrbStack, Claude Code, varlock, 1Password CLI, (opt-in) tailscale/cloudflared/syncthing, fun stuff |
+| Dotfiles | `dotfiles/` (chezmoi source state) | zsh, git, tmux, vim, starship, ssh configs |
+| Agent config | (separate — `kos library` spec) | ~/.claude/, skills, hooks, settings |
 
-Core tools are always installed first (they're required). Infrastructure is opt-in.
-
-## Dotfiles
-
-Dotfiles are managed with [GNU Stow](https://www.gnu.org/software/stow/). Stow creates symlinks from `~/.kos-kit/dotfiles/<package>/` into your home directory, so your config files stay version-controlled in the repo but appear where programs expect them.
-
-For example, `dotfiles/zsh/.zshrc` gets symlinked to `~/.zshrc`.
-
-**Packages:**
-
-| Package | What it configures |
-|---------|-------------------|
-| `zsh` | `.zshrc` — aliases, tool init guards, fnm/starship/zoxide setup |
-| `git` | `.gitconfig` — defaults + `[include]` for `~/.gitconfig.local` (personal overrides) |
-| `starship` | `.config/starship.toml` — minimal prompt theme |
-| `tmux` | `.tmux.conf` — mouse, vi keys, scrollback, true color |
-| `ssh` | `.ssh/config` — `Include` for `~/.ssh/config.local` |
-| `vim` | `.vimrc` — standard vim config |
-
-**Local overrides:** Git and SSH configs include a `.local` file so you can add machine-specific settings (work email, extra hosts) without modifying the repo.
-
-To re-stow dotfiles after pulling updates:
-
-```bash
-cd ~/.kos-kit && stow -R -d dotfiles -t ~ zsh git starship tmux ssh vim
-```
+All default tools are installed unless you pass `--yes` on a fresh machine (infrastructure is opt-in either way).
 
 ## kos CLI
 
-After installation, the `kos` command is available:
+After install, the `kos` command is available:
 
 ```bash
-kos update      # Pull latest and show what changed
-kos doctor      # Check which tools are installed, flag what's missing
-kos setup       # Configure name, email, GitHub username
+kos setup       # Install/update path (replaces old `bootstrap` + `update`)
+kos doctor      # Check all tools; report missing + duplicate (brew/mise) tools
+kos dotfiles    # apply / edit / status / diff via chezmoi
 kos auth        # Authenticate gh, linear, claude
+kos capture     # Slack capture helpers
+kos config      # kos config get/set/list
+kos jobs        # Scheduled job management
+kos status      # Quick health summary
 kos onboard     # Lessons for agentic workflows
-kos cheatsheet  # Print alias and shortcut reference
-kos status      # Quick health check (X/Y tools installed)
+kos cheatsheet  # Print alias/shortcut reference
+kos update      # (deprecated) shim for `kos setup`
 ```
+
+## Dotfiles
+
+Dotfiles live in `dotfiles/` as [chezmoi](https://www.chezmoi.io/) source state. Filenames use chezmoi conventions (`dot_zshrc` → `~/.zshrc`, `.tmpl` suffix for templated files).
+
+Editing dotfiles:
+
+```bash
+chezmoi edit ~/.zshrc          # opens source file, applies on save
+kos dotfiles edit ~/.zshrc     # same, via kos wrapper
+# or edit source directly:
+$EDITOR ~/.kos-kit/dotfiles/dot_zshrc && chezmoi apply
+```
+
+**Escape hatches** for machine-specific values:
+- `~/.gitconfig.local` — included by `dot_gitconfig.tmpl` (signing keys, work-only settings)
+- `~/.ssh/config.local` — included by `dot_ssh/config` (Tailscale peers, work bastions)
+
+## Upgrading from v1 (stow) to v2 (chezmoi)
+
+Just run `kos setup`. It detects your v1 setup, backs up current state to `~/.kos-backup/pre-v2/`, unlinks stow symlinks, and applies v2 via chezmoi.
+
+Editing dotfiles has changed: with v1 you could edit `~/.zshrc` directly (symlink). With v2, the deployed file is a real copy — edit the source via `chezmoi edit ~/.zshrc` or edit `~/.kos-kit/dotfiles/dot_zshrc` directly, then `chezmoi apply`.
 
 ## Project Structure
 
 ```
 kos-kit/
-├── bootstrap.sh        # One-liner entry point (curl | bash)
-├── install.sh          # Interactive installer
-├── lib/                # Bash modules (detect, utils, install, dotfiles)
-├── dotfiles/           # GNU Stow packages (zsh, git, tmux, etc.)
-├── tools/              # CLIs (tmx, transcribe)
-├── cli/                # kos meta-CLI (Bun + citty)
+├── install.sh          # Prereq installer (curl | bash)
+├── mise.toml           # Language/CLI tool manifest
+├── mise.lock           # Pinned versions
+├── kit.toml            # Non-mise tool manifest
+├── dotfiles/           # Chezmoi source state
+├── cli/                # kos CLI (Bun + citty)
+├── tools/              # Workspace tools (tmx, transcribe, library)
 ├── lessons/            # Onboard lessons
-└── package.json        # Bun workspaces
+└── docs/superpowers/   # Specs + plans
 ```
 
 ## License
