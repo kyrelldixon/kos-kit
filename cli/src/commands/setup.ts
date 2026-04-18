@@ -70,6 +70,16 @@ async function installKitEntry(entry: KitEntry): Promise<void> {
   }
 }
 
+async function readGitConfig(key: string): Promise<string> {
+  const proc = Bun.spawn(["git", "config", "--global", key], {
+    stdout: "pipe",
+    stderr: "ignore",
+  });
+  const code = await proc.exited;
+  if (code !== 0) return "";
+  return (await new Response(proc.stdout).text()).trim();
+}
+
 async function maybeMigrateFromV1(ctx: SetupContext): Promise<boolean> {
   const home = process.env.HOME ?? "";
   const symlinks = findStowSymlinks(home, ctx.kosDir);
@@ -306,6 +316,48 @@ export const setupCommand = defineCommand({
             console.warn(`    ! bun link ${rel} failed (exit ${code})`);
           }
         }
+      },
+    );
+
+    await runStep(
+      ctx,
+      {
+        name: "dotfiles",
+        description: "chezmoi init + apply (dotfiles via source state)",
+      },
+      async () => {
+        const sourceDir = join(ctx.kosDir, "dotfiles");
+
+        const initCheck = Bun.spawn(["chezmoi", "source-path"], {
+          stdout: "pipe",
+          stderr: "ignore",
+        });
+        const initOk = (await initCheck.exited) === 0;
+
+        if (!initOk) {
+          const initArgs = ["chezmoi", "init", "--source", sourceDir];
+          if (ctx.yes) {
+            const gitName = await readGitConfig("user.name");
+            const gitEmail = await readGitConfig("user.email");
+            if (gitName && gitEmail) {
+              initArgs.push(
+                "--data",
+                `{"name":"${gitName}","email":"${gitEmail}","github":"${gitName}"}`,
+              );
+            }
+          }
+          const proc = Bun.spawn(initArgs, {
+            stdio: ["inherit", "inherit", "inherit"],
+          });
+          const code = await proc.exited;
+          if (code !== 0) throw new Error("chezmoi init failed");
+        }
+
+        const apply = Bun.spawn(["chezmoi", "apply"], {
+          stdio: ["inherit", "inherit", "inherit"],
+        });
+        const applyCode = await apply.exited;
+        if (applyCode !== 0) throw new Error("chezmoi apply failed");
       },
     );
 
