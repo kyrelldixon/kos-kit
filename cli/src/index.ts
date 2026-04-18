@@ -5,6 +5,7 @@ import { captureCommand } from "./commands/capture";
 import { cheatsheetCommand } from "./commands/cheatsheet";
 import { configCommand } from "./commands/config";
 import { doctorCommand } from "./commands/doctor";
+import { dotfilesCommand } from "./commands/dotfiles";
 import { jobsCommand } from "./commands/jobs";
 import { onboardCommand } from "./commands/onboard";
 import { setupCommand } from "./commands/setup";
@@ -20,6 +21,7 @@ const main = defineCommand({
   subCommands: {
     setup: setupCommand,
     doctor: doctorCommand,
+    dotfiles: dotfilesCommand,
     update: updateCommand,
     auth: authCommand,
     onboard: onboardCommand,
