@@ -51,6 +51,91 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+const VALID_CATEGORIES: readonly Category[] = [
+  "core",
+  "terminal",
+  "shell",
+  "dev",
+  "apps",
+  "infrastructure",
+  "fun",
+];
+
+function isCategory(value: unknown): value is Category {
+  return (
+    typeof value === "string" &&
+    VALID_CATEGORIES.some((c) => c === value)
+  );
+}
+
+function parseOsSpec(raw: unknown): OsSpec | undefined {
+  if (!isRecord(raw)) return undefined;
+  const kind = raw.kind;
+  if (
+    kind !== "brew" &&
+    kind !== "cask" &&
+    kind !== "apt" &&
+    kind !== "custom"
+  ) {
+    throw new Error(`kit.toml: invalid kind "${String(kind)}"`);
+  }
+  return {
+    kind,
+    pkg: typeof raw.pkg === "string" ? raw.pkg : undefined,
+    install: typeof raw.install === "string" ? raw.install : undefined,
+    uninstall: typeof raw.uninstall === "string" ? raw.uninstall : undefined,
+  };
+}
+
+export function loadKit(os: OsName): KitEntry[] {
+  const raw = readFileSync(kitPath(), "utf-8");
+  const parsed: unknown = parse(raw);
+
+  if (!isRecord(parsed)) {
+    throw new Error("kit.toml: top-level must be a table");
+  }
+
+  const toolsRaw = parsed.tools;
+  if (toolsRaw !== undefined && !Array.isArray(toolsRaw)) {
+    throw new Error("kit.toml: [[tools]] must be an array");
+  }
+  const rawTools: unknown[] = toolsRaw ?? [];
+
+  const entries: KitEntry[] = [];
+  for (const r of rawTools) {
+    if (!isRecord(r)) {
+      throw new Error("kit.toml: entry must be a table");
+    }
+    if (typeof r.name !== "string") {
+      throw new Error("kit.toml: entry missing required `name` field");
+    }
+    if (!isCategory(r.category)) {
+      throw new Error(
+        `kit.toml: entry "${r.name}" has invalid category "${String(r.category)}"`,
+      );
+    }
+    if (typeof r.default !== "boolean") {
+      throw new Error(
+        `kit.toml: entry "${r.name}" requires boolean \`default\``,
+      );
+    }
+
+    const osKey = os === "darwin" ? "macos" : "linux";
+    const spec = parseOsSpec(r[osKey]);
+    if (spec === undefined) continue;
+
+    entries.push({
+      name: r.name,
+      display: typeof r.display === "string" ? r.display : r.name,
+      category: r.category,
+      default: r.default,
+      check: typeof r.check === "string" ? r.check : `command -v ${r.name}`,
+      spec,
+    });
+  }
+  return entries;
+}
+
 export function loadMise(): MiseEntry[] {
   const raw = readFileSync(misePath(), "utf-8");
   const parsed: unknown = parse(raw);

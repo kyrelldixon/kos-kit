@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { kitPath, loadMise, misePath } from "./manifest";
+import { type Category, kitPath, loadKit, loadMise, misePath } from "./manifest";
 
 describe("manifest paths", () => {
   test("kitPath resolves to kit.toml at repo root", () => {
@@ -30,5 +30,80 @@ describe("loadMise", () => {
     expect(eza).toBeDefined();
     expect(eza?.version).toBe("0.23.4");
     expect(eza?.backend).toBe("ubi:eza-community/eza");
+  });
+});
+
+describe("loadKit", () => {
+  test("returns entries for darwin", () => {
+    const entries = loadKit("darwin");
+    expect(entries.length).toBeGreaterThan(0);
+  });
+
+  test("each entry has required fields", () => {
+    const entries = loadKit("darwin");
+    for (const e of entries) {
+      expect(e.name).toBeDefined();
+      expect(e.display).toBeDefined();
+      expect(e.category).toBeDefined();
+      expect(typeof e.default).toBe("boolean");
+      expect(e.check).toBeDefined();
+    }
+  });
+
+  test("defaults display to name when display is not set", () => {
+    const entries = loadKit("darwin");
+    const git = entries.find((e) => e.name === "git");
+    expect(git?.display).toBe("git");
+  });
+
+  test("uses explicit display when set", () => {
+    const entries = loadKit("darwin");
+    const claude = entries.find((e) => e.name === "claude");
+    expect(claude?.display).toBe("Claude Code");
+  });
+
+  test("defaults check to `command -v <name>` when not set", () => {
+    const entries = loadKit("darwin");
+    const git = entries.find((e) => e.name === "git");
+    expect(git?.check).toBe("command -v git");
+  });
+
+  test("uses explicit check when set", () => {
+    const entries = loadKit("darwin");
+    const claude = entries.find((e) => e.name === "claude");
+    expect(claude?.check).toBe("claude --version");
+  });
+
+  test("omits entries with no spec for the given OS", () => {
+    const linux = loadKit("linux");
+    expect(linux.find((e) => e.name === "ghostty")).toBeUndefined();
+  });
+
+  test("returns os-specific spec", () => {
+    const macos = loadKit("darwin");
+    const git = macos.find((e) => e.name === "git");
+    expect(git?.spec?.kind).toBe("brew");
+    expect(git?.spec?.pkg).toBe("git");
+
+    const linux = loadKit("linux");
+    const gitL = linux.find((e) => e.name === "git");
+    expect(gitL?.spec?.kind).toBe("apt");
+    expect(gitL?.spec?.pkg).toBe("git");
+  });
+
+  test("rejects unknown category", () => {
+    const entries = loadKit("darwin");
+    const valid: Category[] = [
+      "core",
+      "terminal",
+      "shell",
+      "dev",
+      "apps",
+      "infrastructure",
+      "fun",
+    ];
+    for (const e of entries) {
+      expect(valid.includes(e.category)).toBe(true);
+    }
   });
 });
