@@ -212,6 +212,35 @@ export const setupCommand = defineCommand({
       },
     );
 
+    await runStep(
+      ctx,
+      {
+        name: "link",
+        description: "bun link workspace tools (tmx, transcribe, library)",
+      },
+      async () => {
+        const { existsSync } = await import("node:fs");
+        const tools = ["tools/tmx", "tools/transcribe", "tools/library"];
+
+        for (const rel of tools) {
+          const full = join(ctx.kosDir, rel);
+          if (!existsSync(full)) {
+            console.log(`    (skip) ${rel} — not present`);
+            continue;
+          }
+          console.log(`    → linking ${rel}`);
+          const proc = Bun.spawn(["bun", "link"], {
+            cwd: full,
+            stdio: ["inherit", "inherit", "inherit"],
+          });
+          const code = await proc.exited;
+          if (code !== 0) {
+            console.warn(`    ! bun link ${rel} failed (exit ${code})`);
+          }
+        }
+      },
+    );
+
     console.log("\nDone.");
   },
 });
