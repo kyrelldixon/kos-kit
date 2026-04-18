@@ -17,6 +17,19 @@ This file captures gotchas, non-obvious rules, and things that were repeatedly m
 
 - **NEVER use `varlock printenv`.** It dumps raw secret values to stdout — they leak into logs, terminal history, and tool output. Always use `varlock run -- <command>` to inject env vars into a subprocess environment.
 
+## Manifest
+
+- **Two manifests, one rule.** `mise.toml` holds anything mise's registry can install (languages, most CLIs). `kit.toml` holds the rest (brew, cask, apt, custom installers). Don't add a tool to both.
+- **`mise.lock` is committed.** Regenerate by running `mise up <tool>` → `mise install`, then commit the updated `mise.toml` + `mise.lock` together.
+- **`kit.toml` schema is validated by `cli/src/lib/manifest.ts`.** Invalid `kind`, unknown `category`, or missing required fields throw at load time. Don't hand-edit without running `bun test src/lib/manifest.test.ts` after.
+
+## Dotfiles (chezmoi)
+
+- **Dotfiles live in `dotfiles/` as chezmoi source state**, not stow packages. Filenames use `dot_` prefix (`dot_zshrc` → `~/.zshrc`). `.tmpl` suffix = Go template processed on apply.
+- **Deployed files are copies, not symlinks.** Editing `~/.zshrc` directly won't sync back — edit source via `chezmoi edit ~/.zshrc` or in `dotfiles/dot_zshrc`, then `chezmoi apply`.
+- **Agent config is NOT managed by chezmoi.** `~/.claude/*` and `~/.kos/overrides/*` are owned by `kos library` (see separate spec). `.chezmoiignore` enforces this.
+- **First-run prompts live in `.chezmoi.toml.tmpl`.** Adds fields (name/email/github/hostname) to a per-machine `~/.config/chezmoi/chezmoi.toml`. Modify the source template to add/remove prompts.
+
 ## Tools
 
 Workspace tools live in `tools/`. Each is a standalone Bun CLI linked to PATH via `bun link`:
