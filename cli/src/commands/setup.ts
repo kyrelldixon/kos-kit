@@ -1,3 +1,9 @@
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  unlinkSync,
+} from "node:fs";
 import { join } from "node:path";
 import { defineCommand } from "citty";
 import {
@@ -6,6 +12,7 @@ import {
   loadKit,
   type OsName,
 } from "../lib/manifest";
+import { findStowSymlinks } from "../lib/migrate";
 
 interface PlannedStep {
   name: string;
@@ -61,6 +68,64 @@ async function installKitEntry(entry: KitEntry): Promise<void> {
   if (code !== 0) {
     console.warn(`    ! ${entry.display} install failed (exit ${code})`);
   }
+}
+
+async function maybeMigrateFromV1(ctx: SetupContext): Promise<boolean> {
+  const home = process.env.HOME ?? "";
+  const symlinks = findStowSymlinks(home, ctx.kosDir);
+  if (symlinks.length === 0) return false;
+
+  const chezmoiReady = existsSync(
+    join(ctx.kosDir, "dotfiles", ".chezmoi.toml.tmpl"),
+  );
+  if (!chezmoiReady) {
+    console.log(
+      "\n  (migration: chezmoi source state not yet present; skipping)",
+    );
+    return false;
+  }
+
+  console.log(
+    `\n  MIGRATION: detected ${symlinks.length} stow-managed symlinks (kos-kit v1 → v2)`,
+  );
+  if (!ctx.yes) {
+    process.stdout.write("  Unlink and migrate? (y/N): ");
+    const answer = await new Promise<string>((resolve) => {
+      let data = "";
+      process.stdin.setEncoding("utf-8");
+      process.stdin.resume();
+      process.stdin.on("data", (chunk) => {
+        data += chunk;
+        if (data.includes("\n")) {
+          process.stdin.pause();
+          resolve(data.split("\n")[0].trim());
+        }
+      });
+    });
+    if (answer.toLowerCase() !== "y") {
+      console.log("  Migration declined; aborting setup.");
+      process.exit(1);
+    }
+  }
+
+  const backupDir = join(home, ".kos-backup", "pre-v2");
+  mkdirSync(backupDir, { recursive: true });
+  for (const link of symlinks) {
+    const name = link.split("/").slice(-1)[0];
+    const backupPath = join(backupDir, name);
+    try {
+      copyFileSync(link, backupPath);
+    } catch {
+      // If copy fails, at least still unlink
+    }
+    try {
+      unlinkSync(link);
+    } catch (err) {
+      console.warn(`  ! failed to unlink ${link}: ${String(err)}`);
+    }
+  }
+  console.log(`  Backed up to ${backupDir}; unlinked ${symlinks.length} files`);
+  return true;
 }
 
 async function pickOptionalKitEntries(entries: KitEntry[]): Promise<KitEntry[]> {
@@ -136,6 +201,10 @@ export const setupCommand = defineCommand({
     console.log("kos setup");
     console.log("=========");
     if (ctx.dryRun) console.log("(dry-run mode — no changes will be made)");
+
+    if (!ctx.dryRun) {
+      await maybeMigrateFromV1(ctx);
+    }
 
     await runStep(
       ctx,
@@ -219,7 +288,6 @@ export const setupCommand = defineCommand({
         description: "bun link workspace tools (tmx, transcribe, library)",
       },
       async () => {
-        const { existsSync } = await import("node:fs");
         const tools = ["tools/tmx", "tools/transcribe", "tools/library"];
 
         for (const rel of tools) {
