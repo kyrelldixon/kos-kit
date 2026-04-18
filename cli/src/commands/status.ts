@@ -1,5 +1,16 @@
 import { defineCommand } from "citty";
-import { tools } from "../lib/tools";
+import {
+  checkInstalled,
+  loadKit,
+  loadMise,
+  type OsName,
+} from "../lib/manifest";
+
+function currentOs(): OsName {
+  if (process.platform === "darwin") return "darwin";
+  if (process.platform === "linux") return "linux";
+  throw new Error(`Unsupported platform: ${process.platform}`);
+}
 
 export const statusCommand = defineCommand({
   meta: {
@@ -7,30 +18,31 @@ export const statusCommand = defineCommand({
     description: "Fast health check — show installed tool count",
   },
   async run() {
-    const results = await Promise.all(
-      tools.map(async (tool) => {
-        try {
-          const proc = Bun.spawn(["which", tool.check], {
-            stdout: "ignore",
-            stderr: "ignore",
-          });
-          return (await proc.exited) === 0;
-        } catch {
-          return false;
-        }
-      }),
+    const os = currentOs();
+    const kit = loadKit(os);
+    const mise = loadMise();
+
+    const kitResults = await Promise.all(
+      kit.map((e) => checkInstalled(e.check)),
+    );
+    const miseResults = await Promise.all(
+      mise.map((m) => checkInstalled(`command -v ${m.name}`)),
     );
 
-    const installed = results.filter(Boolean).length;
-    const total = tools.length;
-    const critical = tools.filter((t) => t.critical);
-    const criticalInstalled = critical.filter((_, i) => {
-      const idx = tools.indexOf(critical[i]);
-      return results[idx];
-    }).length;
+    const installed =
+      kitResults.filter(Boolean).length + miseResults.filter(Boolean).length;
+    const total = kit.length + mise.length;
+
+    const defaultKitInstalled = kit.filter(
+      (e, i) => e.default && kitResults[i],
+    ).length;
+    const defaultKitTotal = kit.filter((e) => e.default).length;
+    const defaultInstalled =
+      defaultKitInstalled + miseResults.filter(Boolean).length;
+    const defaultTotal = defaultKitTotal + mise.length;
 
     console.log(
-      `kos: ${installed}/${total} tools installed (${criticalInstalled}/${critical.length} critical)`,
+      `kos: ${installed}/${total} tools installed (${defaultInstalled}/${defaultTotal} default)`,
     );
   },
 });
