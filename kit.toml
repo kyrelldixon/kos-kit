@@ -1,0 +1,250 @@
+# kos-kit — non-mise tool manifest
+# Entries here are installed via brew/apt/custom.
+# Anything mise's default registry handles lives in mise.toml instead.
+
+version = 1
+
+# ---- Core ----
+[[tools]]
+name     = "git"
+category = "core"
+default  = true
+[tools.macos]
+kind = "brew"
+pkg  = "git"
+[tools.linux]
+kind = "apt"
+pkg  = "git"
+
+[[tools]]
+name     = "zsh"
+category = "core"
+default  = true
+[tools.macos]
+kind = "brew"
+pkg  = "zsh"
+[tools.linux]
+kind = "apt"
+pkg  = "zsh"
+
+[[tools]]
+name     = "tmux"
+category = "core"
+default  = true
+[tools.macos]
+kind = "brew"
+pkg  = "tmux"
+[tools.linux]
+kind = "apt"
+pkg  = "tmux"
+
+[[tools]]
+name     = "jq"
+category = "core"
+default  = true
+[tools.macos]
+kind = "brew"
+pkg  = "jq"
+[tools.linux]
+kind = "apt"
+pkg  = "jq"
+
+[[tools]]
+name     = "gum"
+category = "core"
+default  = true
+[tools.macos]
+kind = "brew"
+pkg  = "gum"
+[tools.linux]
+kind    = "custom"
+install = "sudo mkdir -p /etc/apt/keyrings && curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg && echo 'deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *' | sudo tee /etc/apt/sources.list.d/charm.list && sudo apt update && sudo apt install -y gum"
+
+# ---- Shell ----
+[[tools]]
+name     = "tldr"
+display  = "tldr (tealdeer)"
+category = "shell"
+default  = true
+check    = "tldr --version"
+[tools.macos]
+kind = "brew"
+pkg  = "tealdeer"
+[tools.linux]
+kind    = "custom"
+install = "cargo install tealdeer"
+
+# ---- Terminal ----
+[[tools]]
+name     = "ghostty"
+display  = "Ghostty"
+category = "terminal"
+default  = true
+[tools.macos]
+kind = "cask"
+pkg  = "ghostty"
+
+# ---- Dev ----
+[[tools]]
+name     = "claude"
+display  = "Claude Code"
+category = "dev"
+default  = true
+check    = "claude --version"
+[tools.macos]
+kind    = "custom"
+install = "curl -fsSL https://claude.ai/install.sh | bash"
+[tools.linux]
+kind    = "custom"
+install = "curl -fsSL https://claude.ai/install.sh | bash"
+
+[[tools]]
+name     = "varlock"
+category = "dev"
+default  = true
+check    = "varlock --version"
+[tools.macos]
+kind    = "custom"
+install = "bun add -g varlock"
+[tools.linux]
+kind    = "custom"
+install = "bun add -g varlock"
+
+[[tools]]
+name     = "op"
+display  = "1Password CLI"
+category = "dev"
+default  = true
+check    = "op --version"
+[tools.macos]
+kind = "cask"
+pkg  = "1password-cli"
+[tools.linux]
+kind    = "custom"
+install = "curl -sS https://downloads.1password.com/linux/keys/1password.asc | sudo gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg && echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/amd64 stable main' | sudo tee /etc/apt/sources.list.d/1password.list && sudo apt update && sudo apt install -y 1password-cli"
+
+[[tools]]
+name     = "agent-browser"
+category = "dev"
+default  = false
+check    = "agent-browser --version"
+[tools.macos]
+kind    = "custom"
+install = "bun add -g @anthropics/agent-browser"
+[tools.linux]
+kind    = "custom"
+install = "bun add -g @anthropics/agent-browser"
+
+[[tools]]
+name     = "inngest"
+category = "dev"
+default  = false
+check    = "inngest-cli --version"
+[tools.macos]
+kind = "brew"
+pkg  = "inngest"
+[tools.linux]
+kind    = "custom"
+install = "curl -sfL https://cli.inngest.com/install.sh | sh"
+
+[[tools]]
+name     = "yt-dlp"
+category = "dev"
+default  = false
+[tools.macos]
+kind = "brew"
+pkg  = "yt-dlp"
+[tools.linux]
+kind = "apt"
+pkg  = "yt-dlp"
+
+[[tools]]
+name     = "orbstack"
+display  = "OrbStack"
+category = "dev"
+default  = true
+check    = "orb version"
+[tools.macos]
+kind = "cask"
+pkg  = "orbstack"
+
+# ---- Apps ----
+[[tools]]
+name     = "obsidian"
+display  = "Obsidian"
+category = "apps"
+default  = false
+[tools.macos]
+kind = "cask"
+pkg  = "obsidian"
+[tools.linux]
+kind    = "custom"
+install = "echo 'Install Obsidian AppImage from https://obsidian.md/download' && exit 1"
+
+# ---- Infrastructure ----
+[[tools]]
+name     = "tailscale"
+category = "infrastructure"
+default  = false
+[tools.macos]
+kind = "cask"
+pkg  = "tailscale"
+[tools.linux]
+kind    = "custom"
+install = "curl -fsSL https://tailscale.com/install.sh | sh"
+
+[[tools]]
+name     = "cloudflared"
+category = "infrastructure"
+default  = false
+[tools.macos]
+kind = "brew"
+pkg  = "cloudflared"
+[tools.linux]
+kind = "apt"
+pkg  = "cloudflared"
+
+[[tools]]
+name     = "syncthing"
+category = "infrastructure"
+default  = false
+[tools.macos]
+kind = "brew"
+pkg  = "syncthing"
+[tools.linux]
+kind = "apt"
+pkg  = "syncthing"
+
+# ---- Fun ----
+[[tools]]
+name     = "figlet"
+category = "fun"
+default  = false
+[tools.macos]
+kind = "brew"
+pkg  = "figlet"
+[tools.linux]
+kind = "apt"
+pkg  = "figlet"
+
+[[tools]]
+name     = "lolcat"
+category = "fun"
+default  = false
+[tools.macos]
+kind = "brew"
+pkg  = "lolcat"
+[tools.linux]
+kind = "apt"
+pkg  = "lolcat"
+
+[[tools]]
+name     = "toilet"
+category = "fun"
+default  = false
+[tools.macos]
+kind = "brew"
+pkg  = "toilet"
+[tools.linux]
+kind = "apt"
+pkg  = "toilet"
