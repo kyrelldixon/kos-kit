@@ -1,32 +1,30 @@
 #!/usr/bin/env bun
 import { defineCommand, runMain } from "citty";
 import { authCommand } from "./commands/auth";
+import { captureCommand } from "./commands/capture";
 import { cheatsheetCommand } from "./commands/cheatsheet";
+import { configCommand } from "./commands/config";
 import { doctorCommand } from "./commands/doctor";
-import { installCommand } from "./commands/install";
+import { jobsCommand } from "./commands/jobs";
 import { onboardCommand } from "./commands/onboard";
 import { setupCommand } from "./commands/setup";
 import { statusCommand } from "./commands/status";
 import { updateCommand } from "./commands/update";
-import { jobsCommand } from "./commands/jobs";
-import { configCommand } from "./commands/config";
-import { captureCommand } from "./commands/capture";
 
 const main = defineCommand({
   meta: {
     name: "kos",
     description: "kos-kit — dev environment CLI",
-    version: "0.1.0",
+    version: "0.2.0",
   },
   subCommands: {
-    doctor: doctorCommand,
-    install: installCommand,
     setup: setupCommand,
+    doctor: doctorCommand,
+    update: updateCommand,
     auth: authCommand,
     onboard: onboardCommand,
     cheatsheet: cheatsheetCommand,
     status: statusCommand,
-    update: updateCommand,
     jobs: jobsCommand,
     config: configCommand,
     capture: captureCommand,
