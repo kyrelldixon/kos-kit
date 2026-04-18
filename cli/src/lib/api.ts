@@ -76,10 +76,7 @@ export async function varlockFetch(
         "Could not resolve CF Access credentials",
       );
     }
-    throw new ApiError(
-      "VARLOCK_ERROR",
-      stderr || "varlock run failed",
-    );
+    throw new ApiError("VARLOCK_ERROR", stderr || "varlock run failed");
   }
 
   try {
@@ -122,10 +119,7 @@ export function createApiClient(
         ...(body ? { body: JSON.stringify(body) } : {}),
       });
     } catch {
-      throw new ApiError(
-        "CONNECTION_ERROR",
-        `Could not connect to ${baseUrl}`,
-      );
+      throw new ApiError("CONNECTION_ERROR", `Could not connect to ${baseUrl}`);
     }
 
     if (response.status === 204) {

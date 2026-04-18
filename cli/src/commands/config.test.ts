@@ -1,6 +1,6 @@
-import { describe, expect, test, mock } from "bun:test";
-import { handleGet, handleSet, handleList } from "./config";
+import { describe, expect, mock, test } from "bun:test";
 import type { ApiClient } from "../lib/api";
+import { handleGet, handleList, handleSet } from "./config";
 
 function mockClient(overrides: Partial<ApiClient> = {}): ApiClient {
   return {

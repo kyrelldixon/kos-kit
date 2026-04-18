@@ -1,9 +1,9 @@
 import { defineCommand } from "citty";
 import {
+  type OsName,
   checkInstalled,
   loadKit,
   loadMise,
-  type OsName,
 } from "../lib/manifest";
 
 function currentOs(): OsName {

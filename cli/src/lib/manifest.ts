@@ -62,10 +62,7 @@ const VALID_CATEGORIES: readonly Category[] = [
 ];
 
 function isCategory(value: unknown): value is Category {
-  return (
-    typeof value === "string" &&
-    VALID_CATEGORIES.some((c) => c === value)
-  );
+  return typeof value === "string" && VALID_CATEGORIES.some((c) => c === value);
 }
 
 function parseOsSpec(raw: unknown): OsSpec | undefined {

@@ -1,11 +1,11 @@
 import { defineCommand } from "citty";
 import {
   type Category,
-  checkInstalled,
   type KitEntry,
+  type MiseEntry,
+  checkInstalled,
   loadKit,
   loadMise,
-  type MiseEntry,
 } from "../lib/manifest";
 
 function currentOs(): "darwin" | "linux" {

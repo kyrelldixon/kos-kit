@@ -1,16 +1,11 @@
-import {
-  copyFileSync,
-  existsSync,
-  mkdirSync,
-  unlinkSync,
-} from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 import { defineCommand } from "citty";
 import {
-  checkInstalled,
   type KitEntry,
-  loadKit,
   type OsName,
+  checkInstalled,
+  loadKit,
 } from "../lib/manifest";
 import { findStowSymlinks } from "../lib/migrate";
 
@@ -138,14 +133,18 @@ async function maybeMigrateFromV1(ctx: SetupContext): Promise<boolean> {
   return true;
 }
 
-async function pickOptionalKitEntries(entries: KitEntry[]): Promise<KitEntry[]> {
+async function pickOptionalKitEntries(
+  entries: KitEntry[],
+): Promise<KitEntry[]> {
   const optional = entries.filter(
     (e) =>
       !e.default && (e.category === "apps" || e.category === "infrastructure"),
   );
   if (optional.length === 0) return [];
 
-  const options = optional.map((e) => `${e.name} — ${e.display} (${e.category})`);
+  const options = optional.map(
+    (e) => `${e.name} — ${e.display} (${e.category})`,
+  );
   const gumProc = Bun.spawn(
     [
       "gum",
@@ -223,10 +222,9 @@ export const setupCommand = defineCommand({
         description: "git pull --ff-only",
       },
       async () => {
-        const proc = Bun.spawn(
-          ["git", "-C", ctx.kosDir, "pull", "--ff-only"],
-          { stdio: ["inherit", "inherit", "inherit"] },
-        );
+        const proc = Bun.spawn(["git", "-C", ctx.kosDir, "pull", "--ff-only"], {
+          stdio: ["inherit", "inherit", "inherit"],
+        });
         const code = await proc.exited;
         if (code !== 0) {
           console.warn(

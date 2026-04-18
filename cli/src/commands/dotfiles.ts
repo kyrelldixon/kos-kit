@@ -17,7 +17,10 @@ async function runChezmoi(...subArgs: string[]): Promise<number> {
 }
 
 const applyCmd = defineCommand({
-  meta: { name: "apply", description: "chezmoi apply — write dotfiles to $HOME" },
+  meta: {
+    name: "apply",
+    description: "chezmoi apply — write dotfiles to $HOME",
+  },
   async run() {
     const code = await runChezmoi("apply");
     process.exit(code);
@@ -25,7 +28,10 @@ const applyCmd = defineCommand({
 });
 
 const editCmd = defineCommand({
-  meta: { name: "edit", description: "chezmoi edit <target> — edit source, apply on save" },
+  meta: {
+    name: "edit",
+    description: "chezmoi edit <target> — edit source, apply on save",
+  },
   args: {
     target: {
       type: "positional",
@@ -41,7 +47,10 @@ const editCmd = defineCommand({
 });
 
 const statusCmd = defineCommand({
-  meta: { name: "status", description: "chezmoi status — show pending changes" },
+  meta: {
+    name: "status",
+    description: "chezmoi status — show pending changes",
+  },
   async run() {
     const code = await runChezmoi("status");
     process.exit(code);
@@ -57,7 +66,10 @@ const diffCmd = defineCommand({
 });
 
 export const dotfilesCommand = defineCommand({
-  meta: { name: "dotfiles", description: "Dotfile operations (chezmoi wrappers)" },
+  meta: {
+    name: "dotfiles",
+    description: "Dotfile operations (chezmoi wrappers)",
+  },
   subCommands: {
     apply: applyCmd,
     edit: editCmd,
