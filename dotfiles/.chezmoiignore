@@ -1,0 +1,5 @@
+# Agent config is managed by `kos library`, not chezmoi
+.claude
+.claude/**
+.kos/overrides
+.kos/overrides/**
