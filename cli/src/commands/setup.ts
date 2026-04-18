@@ -79,6 +79,24 @@ export const setupCommand = defineCommand({
       },
     );
 
+    await runStep(
+      ctx,
+      {
+        name: "mise",
+        description: "mise install (reads mise.toml + mise.lock)",
+      },
+      async () => {
+        const proc = Bun.spawn(["mise", "install"], {
+          cwd: ctx.kosDir,
+          stdio: ["inherit", "inherit", "inherit"],
+        });
+        const code = await proc.exited;
+        if (code !== 0) {
+          throw new Error("mise install failed");
+        }
+      },
+    );
+
     console.log("\nDone.");
   },
 });
