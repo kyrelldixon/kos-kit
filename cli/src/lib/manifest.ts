@@ -136,6 +136,19 @@ export function loadKit(os: OsName): KitEntry[] {
   return entries;
 }
 
+export async function checkInstalled(cmd: string): Promise<boolean> {
+  try {
+    const proc = Bun.spawn(["sh", "-c", cmd], {
+      stdout: "ignore",
+      stderr: "ignore",
+    });
+    const code = await proc.exited;
+    return code === 0;
+  } catch {
+    return false;
+  }
+}
+
 export function loadMise(): MiseEntry[] {
   const raw = readFileSync(misePath(), "utf-8");
   const parsed: unknown = parse(raw);

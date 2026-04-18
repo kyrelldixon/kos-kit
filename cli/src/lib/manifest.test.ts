@@ -1,5 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { type Category, kitPath, loadKit, loadMise, misePath } from "./manifest";
+import {
+  type Category,
+  checkInstalled,
+  kitPath,
+  loadKit,
+  loadMise,
+  misePath,
+} from "./manifest";
 
 describe("manifest paths", () => {
   test("kitPath resolves to kit.toml at repo root", () => {
@@ -105,5 +112,24 @@ describe("loadKit", () => {
     for (const e of entries) {
       expect(valid.includes(e.category)).toBe(true);
     }
+  });
+});
+
+describe("checkInstalled", () => {
+  test("returns true for a command that exists (sh)", async () => {
+    const ok = await checkInstalled("command -v sh");
+    expect(ok).toBe(true);
+  });
+
+  test("returns false for a nonsense command", async () => {
+    const ok = await checkInstalled(
+      "command -v definitely-not-a-real-binary-xyz",
+    );
+    expect(ok).toBe(false);
+  });
+
+  test("returns false when the check command errors", async () => {
+    const ok = await checkInstalled("false");
+    expect(ok).toBe(false);
   });
 });
