@@ -1,5 +1,13 @@
-import { copyFileSync, existsSync, mkdirSync, unlinkSync } from "node:fs";
-import { join } from "node:path";
+import {
+  copyFileSync,
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  readlinkSync,
+  symlinkSync,
+  unlinkSync,
+} from "node:fs";
+import { dirname, join } from "node:path";
 import { defineCommand } from "citty";
 import {
   type KitEntry,
@@ -168,6 +176,27 @@ async function pickOptionalKitEntries(
   return optional.filter((e) => picked.includes(e.name));
 }
 
+function ensureSymlink(target: string, linkPath: string): void {
+  const parent = dirname(linkPath);
+  if (!existsSync(parent)) mkdirSync(parent, { recursive: true });
+
+  const stat = lstatSync(linkPath, { throwIfNoEntry: false });
+  if (stat) {
+    if (stat.isSymbolicLink()) {
+      if (readlinkSync(linkPath) === target) return;
+      unlinkSync(linkPath);
+    } else {
+      const kind = stat.isDirectory() ? "directory" : "file";
+      console.warn(
+        `    ! ${linkPath} exists as a real ${kind}; skipping symlink (move it aside to let kos manage it)`,
+      );
+      return;
+    }
+  }
+  symlinkSync(target, linkPath);
+  console.log(`    → linked ${linkPath} → ${target}`);
+}
+
 async function runStep(
   ctx: SetupContext,
   step: PlannedStep,
@@ -241,6 +270,13 @@ export const setupCommand = defineCommand({
         description: "mise install (reads mise.toml + mise.lock)",
       },
       async () => {
+        // Link kos-kit/mise.toml → global mise config so tools activate everywhere,
+        // not just inside the repo dir.
+        ensureSymlink(
+          join(ctx.kosDir, "mise.toml"),
+          join(process.env.HOME ?? "", ".config/mise/config.toml"),
+        );
+
         const proc = Bun.spawn(["mise", "install"], {
           cwd: ctx.kosDir,
           stdio: ["inherit", "inherit", "inherit"],
@@ -326,14 +362,23 @@ export const setupCommand = defineCommand({
       async () => {
         const sourceDir = join(ctx.kosDir, "dotfiles");
 
-        const initCheck = Bun.spawn(["chezmoi", "source-path"], {
-          stdout: "pipe",
-          stderr: "ignore",
-        });
-        const initOk = (await initCheck.exited) === 0;
+        // Link kos-kit/dotfiles → chezmoi's default source path so bare
+        // `chezmoi apply|edit|diff` work without needing --source.
+        ensureSymlink(
+          sourceDir,
+          join(process.env.HOME ?? "", ".local/share/chezmoi"),
+        );
 
-        if (!initOk) {
-          const initArgs = ["chezmoi", "init", "--source", sourceDir];
+        // Run init if the chezmoi config doesn't exist yet. init renders
+        // .chezmoi.toml.tmpl → ~/.config/chezmoi/chezmoi.toml (seed data
+        // like name/email/github/hostname).
+        const chezmoiConfig = join(
+          process.env.HOME ?? "",
+          ".config/chezmoi/chezmoi.toml",
+        );
+
+        if (!existsSync(chezmoiConfig)) {
+          const initArgs = ["chezmoi", "init"];
           if (ctx.yes) {
             const gitName = await readGitConfig("user.name");
             const gitEmail = await readGitConfig("user.email");
