@@ -6,7 +6,9 @@ import {
   readlinkSync,
   symlinkSync,
   unlinkSync,
+  writeFileSync,
 } from "node:fs";
+import { hostname } from "node:os";
 import { dirname, join } from "node:path";
 import { defineCommand } from "citty";
 import {
@@ -26,6 +28,9 @@ interface SetupContext {
   kosDir: string;
   dryRun: boolean;
   yes: boolean;
+  name?: string;
+  email?: string;
+  github?: string;
 }
 
 function kosDir(): string {
@@ -228,12 +233,27 @@ export const setupCommand = defineCommand({
       description: "Print planned steps without executing them",
       default: false,
     },
+    name: {
+      type: "string",
+      description: "Full name for chezmoi identity (required with --yes on fresh machines; falls back to git global user.name)",
+    },
+    email: {
+      type: "string",
+      description: "Email for chezmoi identity (required with --yes on fresh machines; falls back to git global user.email)",
+    },
+    github: {
+      type: "string",
+      description: "GitHub username for chezmoi identity (required with --yes on fresh machines)",
+    },
   },
   async run({ args }) {
     const ctx: SetupContext = {
       kosDir: kosDir(),
       dryRun: args["dry-run"] === true,
       yes: args.yes === true,
+      name: typeof args.name === "string" ? args.name : undefined,
+      email: typeof args.email === "string" ? args.email : undefined,
+      github: typeof args.github === "string" ? args.github : undefined,
     };
 
     console.log("kos setup");
@@ -276,6 +296,15 @@ export const setupCommand = defineCommand({
           join(ctx.kosDir, "mise.toml"),
           join(process.env.HOME ?? "", ".config/mise/config.toml"),
         );
+
+        const trust = Bun.spawn(
+          ["mise", "trust", join(ctx.kosDir, "mise.toml")],
+          { stdio: ["inherit", "inherit", "inherit"] },
+        );
+        const trustCode = await trust.exited;
+        if (trustCode !== 0) {
+          throw new Error("mise trust failed");
+        }
 
         const proc = Bun.spawn(["mise", "install"], {
           cwd: ctx.kosDir,
@@ -378,22 +407,42 @@ export const setupCommand = defineCommand({
         );
 
         if (!existsSync(chezmoiConfig)) {
-          const initArgs = ["chezmoi", "init"];
           if (ctx.yes) {
-            const gitName = await readGitConfig("user.name");
-            const gitEmail = await readGitConfig("user.email");
-            if (gitName && gitEmail) {
-              initArgs.push(
-                "--data",
-                `{"name":"${gitName}","email":"${gitEmail}","github":"${gitName}"}`,
+            const name = ctx.name ?? (await readGitConfig("user.name"));
+            const email = ctx.email ?? (await readGitConfig("user.email"));
+            const github = ctx.github ?? "";
+            const missing: string[] = [];
+            if (!name) missing.push("--name");
+            if (!email) missing.push("--email");
+            if (!github) missing.push("--github");
+            if (missing.length > 0) {
+              throw new Error(
+                `--yes requires ${missing.join(", ")} (or matching git global config for name/email).\n` +
+                  "  Example: kos setup --yes \\\n" +
+                  '    --name "Your Name" \\\n' +
+                  '    --email "you@example.com" \\\n' +
+                  '    --github "yourhandle"\n' +
+                  "  Or run `kos setup` without --yes to enter them interactively.",
               );
             }
+            const toml = [
+              "[data]",
+              `    name = ${JSON.stringify(name)}`,
+              `    email = ${JSON.stringify(email)}`,
+              `    github = ${JSON.stringify(github)}`,
+              `    hostname = ${JSON.stringify(hostname())}`,
+              "",
+            ].join("\n");
+            mkdirSync(dirname(chezmoiConfig), { recursive: true });
+            writeFileSync(chezmoiConfig, toml);
+            console.log(`    → seeded ${chezmoiConfig}`);
+          } else {
+            const proc = Bun.spawn(["chezmoi", "init"], {
+              stdio: ["inherit", "inherit", "inherit"],
+            });
+            const code = await proc.exited;
+            if (code !== 0) throw new Error("chezmoi init failed");
           }
-          const proc = Bun.spawn(initArgs, {
-            stdio: ["inherit", "inherit", "inherit"],
-          });
-          const code = await proc.exited;
-          if (code !== 0) throw new Error("chezmoi init failed");
         }
 
         const apply = Bun.spawn(["chezmoi", "apply"], {

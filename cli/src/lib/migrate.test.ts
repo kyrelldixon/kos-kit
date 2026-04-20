@@ -54,6 +54,34 @@ describe("findStowSymlinks", () => {
     rmSync(kos, { recursive: true, force: true });
   });
 
+  test("detects relative symlink targets (v1 stow style from $HOME)", () => {
+    const home = mkTempDir("kos-home-");
+    const kos = join(home, ".kos-kit");
+    const dotfiles = join(kos, "dotfiles");
+    mkdirSync(join(dotfiles, "zsh"), { recursive: true });
+    writeFileSync(join(dotfiles, "zsh", ".zshrc"), "zsh");
+
+    symlinkSync(".kos-kit/dotfiles/zsh/.zshrc", join(home, ".zshrc"));
+
+    const result = findStowSymlinks(home, kos);
+    expect(result.map((p) => p.split("/").pop())).toEqual([".zshrc"]);
+
+    rmSync(home, { recursive: true, force: true });
+  });
+
+  test("detects dangling relative symlinks (v1 paths that no longer exist)", () => {
+    const home = mkTempDir("kos-home-");
+    const kos = join(home, ".kos-kit");
+    mkdirSync(join(kos, "dotfiles"), { recursive: true });
+
+    symlinkSync(".kos-kit/dotfiles/git/.gitconfig", join(home, ".gitconfig"));
+
+    const result = findStowSymlinks(home, kos);
+    expect(result.map((p) => p.split("/").pop())).toEqual([".gitconfig"]);
+
+    rmSync(home, { recursive: true, force: true });
+  });
+
   test("ignores symlinks whose targets are outside dotfiles/", () => {
     const home = mkTempDir("kos-home-");
     const kos = mkTempDir("kos-dir-");

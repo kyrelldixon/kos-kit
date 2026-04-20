@@ -35,6 +35,6 @@ if [ ! -d "$KOS_DIR" ]; then
 fi
 cd "$KOS_DIR"
 bun install
-bun link ./cli
+(cd cli && bun link)
 
 exec kos setup "$@"
