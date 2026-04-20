@@ -86,6 +86,19 @@ pkg  = "ghostty"
 
 # ---- Dev ----
 [[tools]]
+name     = "fnm"
+display  = "fnm (Node version manager)"
+category = "dev"
+default  = true
+check    = "fnm --version"
+[tools.macos]
+kind = "brew"
+pkg  = "fnm"
+[tools.linux]
+kind    = "custom"
+install = "curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell"
+
+[[tools]]
 name     = "claude"
 display  = "Claude Code"
 category = "dev"
