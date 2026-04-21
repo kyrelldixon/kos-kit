@@ -152,7 +152,7 @@ install = "bun add -g @anthropics/agent-browser"
 name     = "inngest"
 category = "dev"
 default  = false
-check    = "inngest-cli --version"
+check    = "inngest version"
 [tools.macos]
 kind = "brew"
 pkg  = "inngest"
