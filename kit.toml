@@ -143,10 +143,10 @@ default  = false
 check    = "agent-browser --version"
 [tools.macos]
 kind    = "custom"
-install = "bun add -g @anthropics/agent-browser"
+install = "bun add -g agent-browser && agent-browser install"
 [tools.linux]
 kind    = "custom"
-install = "bun add -g @anthropics/agent-browser"
+install = "bun add -g agent-browser && agent-browser install"
 
 [[tools]]
 name     = "inngest"
