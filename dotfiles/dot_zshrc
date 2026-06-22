@@ -99,10 +99,10 @@ alias bad='bun add -D'
 alias bl='bun run lint'
 
 # --- Claude Code ---
-# Default to deepest reasoning and summarized thinking output.
+# Default to extra-high reasoning (xhigh) and summarized thinking output.
 # --thinking-display is a hidden flag (not shown in `claude --help`) — run
 # `claude-hidden-flags` after each update to rediscover hidden flags.
-alias claude='claude --effort max --thinking-display summarized'
+alias claude='claude --effort xhigh --thinking-display summarized'
 
 # List hidden Claude Code CLI flags by diffing commander.js-style flag
 # signatures in the binary against `claude --help`. Hidden flags are
