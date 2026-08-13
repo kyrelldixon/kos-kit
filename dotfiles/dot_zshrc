@@ -39,7 +39,7 @@ command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
 command -v atuin  &>/dev/null && eval "$(atuin init zsh)"
 command -v fzf    &>/dev/null && eval "$(fzf --zsh 2>/dev/null)" 2>/dev/null
 
-# Bun completions
+# bun completions
 [[ -s "$BUN_INSTALL/_bun" ]] && source "$BUN_INSTALL/_bun"
 
 # uv
@@ -123,7 +123,7 @@ alias zshr='source ~/.zshrc'
 alias mv='mv -iv'
 alias cp='cp -riv'
 alias mkdir='mkdir -vp'
-alias pwdc='pwd | pbcopy'
+alias pwdc='printf %s "$PWD" | pbcopy'
 command -v trash &>/dev/null && alias rm='trash'  # safe rm → macOS Trash
 
 # ls: eza → lsd → ls fallback
