@@ -6,6 +6,7 @@ import {
   checkInstalled,
   loadKit,
   loadMise,
+  miseBin,
 } from "../lib/manifest";
 
 function currentOs(): "darwin" | "linux" {
@@ -32,7 +33,7 @@ export const doctorCommand = defineCommand({
 
     console.log("\n  MISE TOOLS");
     for (const m of mise) {
-      const installed = await checkInstalled(`command -v ${m.name}`);
+      const installed = await checkInstalled(`command -v ${miseBin(m.name)}`);
       console.log(`    [${icon(installed)}] ${m.name}@${m.version}`);
       if (!installed) allGood = false;
     }

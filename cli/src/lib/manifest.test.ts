@@ -1,10 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import {
   type Category,
+  MISE_BIN_OVERRIDES,
   checkInstalled,
   kitPath,
   loadKit,
   loadMise,
+  miseBin,
   misePath,
 } from "./manifest";
 
@@ -24,11 +26,12 @@ describe("loadMise", () => {
     expect(entries.length).toBeGreaterThan(0);
   });
 
+  // Asserts the string form parses, not the exact pin — pins move on `mise up`.
   test("returns bun with its pinned version", () => {
     const entries = loadMise();
     const bun = entries.find((e) => e.name === "bun");
     expect(bun).toBeDefined();
-    expect(bun?.version).toBe("1.3.12");
+    expect(bun?.version).toMatch(/^\d+\.\d+\.\d+$/);
   });
 
   test("parses eza with backend override", () => {
@@ -37,6 +40,30 @@ describe("loadMise", () => {
     expect(eza).toBeDefined();
     expect(eza?.version).toBe("0.23.4");
     expect(eza?.backend).toBe("ubi:eza-community/eza");
+  });
+});
+
+describe("miseBin", () => {
+  test("returns the tool name when it matches the binary", () => {
+    expect(miseBin("bun")).toBe("bun");
+    expect(miseBin("fd")).toBe("fd");
+  });
+
+  test("maps ripgrep to rg", () => {
+    expect(miseBin("ripgrep")).toBe("rg");
+  });
+
+  test("maps rust to cargo", () => {
+    expect(miseBin("rust")).toBe("cargo");
+  });
+
+  // A stale override silently reintroduces the false negative it was added to
+  // fix, so keep the map pinned to tools mise.toml actually declares.
+  test("every override names a tool present in mise.toml", () => {
+    const names = new Set(loadMise().map((e) => e.name));
+    for (const name of Object.keys(MISE_BIN_OVERRIDES)) {
+      expect(names).toContain(name);
+    }
   });
 });
 

@@ -37,6 +37,19 @@ export interface MiseEntry {
   backend?: string;
 }
 
+// mise.toml keys are tool names, which aren't always the binary that lands on
+// PATH. Checking `command -v <tool name>` reports these as missing when they're
+// installed and active.
+export const MISE_BIN_OVERRIDES: Record<string, string> = {
+  ripgrep: "rg",
+  // mise's rust backend delegates to rustup and exposes no `rust` binary.
+  rust: "cargo",
+};
+
+export function miseBin(name: string): string {
+  return MISE_BIN_OVERRIDES[name] ?? name;
+}
+
 const REPO_ROOT = join(import.meta.dir, "..", "..", "..");
 
 export function kitPath(): string {
