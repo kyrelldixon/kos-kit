@@ -325,6 +325,10 @@ url = "https://dl.google.com/go/go1.26.2.windows-amd64.zip"
 checksum = "sha256:98eb3570bade15cb826b0909338df6cc6d2cf590bc39c471142002db3832b708"
 url = "https://dl.google.com/go/go1.26.2.windows-amd64.zip"
 
+[[tools.herdr]]
+version = "0.8.2"
+backend = "aqua:herdrdev/herdr"
+
 [[tools.just]]
 version = "1.49.0"
 backend = "aqua:casey/just"

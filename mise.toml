@@ -25,6 +25,7 @@ atuin    = "18.15.2"
 gh   = "2.90.0"
 just = "1.49.0"
 prek = "0.3.9"
+herdr = "0.8.2"
 
 # eza — override backend so macOS doesn't compile from source
 [tools.eza]
